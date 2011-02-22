@@ -1,0 +1,32 @@
+use strict;
+
+use ExtUtils::MakeMaker qw(WriteMakefile);
+use File::Spec::Functions;
+
+my (@INC, @LIBPATH, @LIBS);
+
+my $DEFINES = '-O2';
+$DEFINES .= ' -Wall' unless $^O =~ /sun|solaris/i;
+$DEFINES .= ' -Wno-unused-value -Wno-format-security' unless $^O =~ /Win32|sun|solaris/i;
+
+unshift @INC, '-I. -I.. -Isrc';
+
+my $inc_files = join(' ', glob 'src/*.h');
+my $src_files = join(' ', glob 'src/*.c');
+my $xs_files  = join(' ', glob '*.xs');
+
+WriteMakefile(
+    NAME              => 'Thrift::XS',
+    VERSION_FROM      => 'lib/Thrift/XS.pm',
+    PREREQ_PM         => {
+        'Thrift'            => 0,
+        'XS::Object::Magic' => 0,
+        'Test::BinaryData'  => 0,
+    },
+    ABSTRACT_FROM     => 'lib/Thrift/XS.pm',
+    AUTHOR            => 'Andy Grundman <andy@slimdevices.com>',
+    INC               => join(' ', @INC),
+    LIBS              => [ join(' ', @LIBPATH, @LIBS) ],
+    DEFINE            => $DEFINES,
+    depend            => { 'XS.c' => "$inc_files $src_files $xs_files" },
+);
