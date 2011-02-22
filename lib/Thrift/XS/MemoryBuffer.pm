@@ -1,4 +1,5 @@
-package Thrift::XS::MemoryBuffer;
+package # hide
+    Thrift::XS::MemoryBuffer;
 
 use strict;
 use base('Thrift::Transport');

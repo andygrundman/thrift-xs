@@ -19,7 +19,8 @@ WriteMakefile(
     NAME              => 'Thrift::XS',
     VERSION_FROM      => 'lib/Thrift/XS.pm',
     PREREQ_PM         => {
-        'Thrift'            => 0,
+        'Class::Accessor'   => 0,
+        'Bit::Vector'       => 0,
         'XS::Object::Magic' => 0,
         'Test::BinaryData'  => 0,
     },

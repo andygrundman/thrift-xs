@@ -1,4 +1,5 @@
-package Thrift::XS::BinaryProtocol;
+package # hide
+    Thrift::XS::BinaryProtocol;
 
 use strict;
 use base('Thrift::Protocol');
