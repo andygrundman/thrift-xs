@@ -3,7 +3,7 @@ package Thrift::XS::BinaryProtocol;
 use strict;
 use base('Thrift::Protocol');
 
-# Most implementation is in XS.xs
+# Most implementation is in BinaryProtocol.xs
 
 sub new {
     my $class = shift;

@@ -3,6 +3,6 @@ package Thrift::XS::MemoryBuffer;
 use strict;
 use base('Thrift::Transport');
 
-# Implementation is in XS.xs
+# Implementation is in MemoryBuffer.xs
 
 1;
