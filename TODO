@@ -1,1 +1,8 @@
-Compact protocol
+Test under 5.12
+Test in PPC mode (big-endian)
+Win32 support
+Add github link to META.yml
+
+#   at t/protocol.t line 146.
+#          got: '-3.14158999999999988'
+#     expected: '-3.14159'

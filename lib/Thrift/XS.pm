@@ -5,8 +5,9 @@ use XS::Object::Magic;
 
 use Thrift::XS::MemoryBuffer;
 use Thrift::XS::BinaryProtocol;
+use Thrift::XS::CompactProtocol;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 require XSLoader;
 XSLoader::load('Thrift::XS', $VERSION);
@@ -40,6 +41,9 @@ Thrift::XS - Faster Thrift binary protocol encoding and decoding
 
 Thrift::XS provides faster versions of Thrift::BinaryProtocol and
 Thrift::MemoryBuffer.  On average it is about 4-6 times faster.
+
+Thrift compact protocol support is also available, just replace
+Thrift::XS::BinaryProtocol with Thrift::XS::CompactProtocol.
 
 To use, simply replace your Thrift initialization code with the appropriate
 Thrift::XS version.

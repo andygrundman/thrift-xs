@@ -1,9 +1,21 @@
+#ifndef _COMMON_H
+#define _COMMON_H
+
+// Define for debug output
 //#define XS_DEBUG
 
 #ifdef XS_DEBUG
 # define DEBUG_TRACE(...) PerlIO_printf(PerlIO_stderr(), __VA_ARGS__)
 #else
 # define DEBUG_TRACE(...)
+#endif
+
+#if __GNUC__ >= 4
+# define likely(x)   __builtin_expect(!!(x), 1)
+# define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+# define likely(x)   (x)
+# define unlikely(x) (x)
 #endif
 
 #define my_hv_store(a,b,c)     hv_store(a,b,strlen(b),c,0)
@@ -28,3 +40,5 @@
   SV *errsv = get_sv("@", GV_ADD);                                                   \
   sv_setsv(errsv, sv_bless(newRV_noinc((SV *)exception), gv_stashpv(class, TRUE)));  \
   croak(NULL)
+
+#endif

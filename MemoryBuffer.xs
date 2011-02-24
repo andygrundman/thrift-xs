@@ -1,6 +1,3 @@
-#include "buffer.c"
-#include "memory_buffer.h"
-
 MODULE = Thrift::XS   PACKAGE = Thrift::XS::MemoryBuffer
 
 SV *
@@ -91,7 +88,9 @@ CODE:
   }
   
   DEBUG_TRACE("readAll(%d)\n", len);
-  //buffer_dump(mbuf->buffer, len);
+#ifdef XS_DEBUG
+  buffer_dump(mbuf->buffer, len);
+#endif
   
   RETVAL = newSVpvn( buffer_ptr(mbuf->buffer), len );
   buffer_consume(mbuf->buffer, len);
@@ -113,7 +112,9 @@ CODE:
   buffer_append(mbuf->buffer, (void *)SvPVX(buf), len);
   
   DEBUG_TRACE("write(%d)\n", len);
-  //buffer_dump(mbuf->buffer, 0);
+#ifdef XS_DEBUG
+  buffer_dump(mbuf->buffer, 0);
+#endif
 }
   
 void

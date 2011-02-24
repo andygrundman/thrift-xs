@@ -1,5 +1,3 @@
-#include "binary_protocol.h"
-
 MODULE = Thrift::XS   PACKAGE = Thrift::XS::BinaryProtocol
 
 void
@@ -137,7 +135,7 @@ CODE:
   SV *trans = GET_TRANSPORT(self);
   char data[1];
   
-  data[0] = SvOK(value) ? 1 : 0;
+  data[0] = SvTRUE(value) ? 1 : 0;
   
   WRITE(trans, data, 1);
 }
@@ -161,8 +159,7 @@ CODE:
   SV *trans = GET_TRANSPORT(self);
   char data[2];
   
-  data[0] = (value >> 8) & 0xff;
-  data[1] = value & 0xff;
+  INT_TO_I16(data, value, 0);
   
   WRITE(trans, data, 2);
 }

@@ -1,13 +1,17 @@
-package Thrift::XS::BinaryProtocol;
+package Thrift::XS::CompactProtocol;
 
 use strict;
 use base('Thrift::Protocol');
 
-# Most implementation is in BinaryProtocol.xs
+# Most implementation is in CompactProtocol.xs
 
 sub new {
     my $class = shift;
     my $self  = $class->SUPER::new(@_);
+    
+    # Some state is needed for compact encoding
+    $self->{last_field_id} = 0;
+    $self->{last_fields}   = [];
 
     return bless $self, $class;
 }
@@ -17,7 +21,7 @@ __END__
 
 =head1 NAME
 
-Thrift::XS::BinaryProtocol - Standard binary protocol
+Thrift::XS::CompactProtocol - More efficient binary protocol
 
 =head1 SYNOPSIS
 
@@ -29,7 +33,7 @@ Thrift::XS::BinaryProtocol - Standard binary protocol
     
     my $socket    = Thrift::Socket->new( $host, $port );
     my $transport = Thrift::FramedTransport->new($socket);
-    my $protocol  = Thrift::XS::BinaryProtocol->new($transport);
+    my $protocol  = Thrift::XS::CompactProtocol->new($transport);
     my $client    = MyThriftInterface->new($protocol);
     
     $transport->open;
@@ -38,7 +42,7 @@ Thrift::XS::BinaryProtocol - Standard binary protocol
 
 =head1 DESCRIPTION
 
-This is the standard Thrift binary protocol.
+As the name implies, this is a more compact and efficient binary protocol.
 
 =head1 AUTHOR
 

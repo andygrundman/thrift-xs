@@ -7,7 +7,7 @@ use Thrift::XS;
 use Thrift::MemoryBuffer;
 use Thrift::BinaryProtocol;
 
-plan tests => 39;
+plan tests => 41;
 
 # Tests compare pure Perl output with XS output
 my $xst = Thrift::XS::MemoryBuffer->new;
@@ -40,6 +40,7 @@ my $test = sub {
     $test->('writeListBegin' => TType::STRUCT, 12345678);
     $test->('writeSetBegin' => TType::I32, 8);
     $test->('writeBool' => 1);
+    $test->('writeBool' => 0);
     $test->('writeByte' => 50);
     $test->('writeI16' => 65000);
     $test->('writeI16' => -42);
@@ -108,8 +109,16 @@ my $test = sub {
     my $value;
     $xsp->writeBool('true');
     $xsp->readBool(\$value);
-    is($value, 1, "readBool ok");
+    is($value, 1, "readBool true ok");
 }
+
+{
+    my $value;
+    $xsp->writeBool(0);
+    $xsp->readBool(\$value);
+    is($value, 0, "readBool false ok");
+}
+
 
 {
     my $value;
