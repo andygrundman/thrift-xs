@@ -10,7 +10,7 @@ __END__
 
 =head1 NAME
 
-Thrift::XS::MemoryBuffer - Standard binary protocol
+Thrift::XS::MemoryBuffer - Fast memory buffer
 
 =head1 SYNOPSIS
 
