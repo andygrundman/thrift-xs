@@ -9,6 +9,7 @@ use Thrift::BinaryProtocol;
 
 my $xst = Thrift::XS::MemoryBuffer->new;
 my $xsp = Thrift::XS::BinaryProtocol->new($xst);
+my $xsc = Thrift::XS::CompactProtocol->new($xst);
 
 my $ppt = Thrift::MemoryBuffer->new;
 my $ppp = Thrift::BinaryProtocol->new($ppt);
@@ -39,6 +40,11 @@ cmpthese( -5, {
         $xsp->writeMessageBegin('login русский', TMessageType::CALL, 12345);
         $xsp->readMessageBegin(\$name, \$type, \$seqid);
     },
+    BinaryProtocol_MessageBegin_xsc => sub {
+        my ($name, $type, $seqid);
+        $xsc->writeMessageBegin('login русский', TMessageType::CALL, 12345);
+        $xsc->readMessageBegin(\$name, \$type, \$seqid);
+    },
     BinaryProtocol_MessageBegin_pp => sub {
         my ($name, $type, $seqid);
         $ppp->writeMessageBegin('login русский', TMessageType::CALL, 12345);
@@ -56,6 +62,11 @@ cmpthese( -5, {
         my $name;
         $xsp->writeStructBegin('foo');
         $xsp->readStructBegin(\$name);
+    },
+    BinaryProtocol_StructBegin_xsc => sub {
+        my $name;
+        $xsc->writeStructBegin('foo');
+        $xsc->readStructBegin(\$name);
     },
     BinaryProtocol_StructBegin_pp => sub {
         my $name;
@@ -75,6 +86,11 @@ cmpthese( -5, {
         $xsp->writeFieldBegin('start', TType::STRING, 2600);
         $xsp->readFieldBegin(\$name, \$type, \$id);
     },
+    BinaryProtocol_FieldBegin_xsc => sub {
+        my ($name, $type, $id);   
+        $xsc->writeFieldBegin('start', TType::STRING, 2600);
+        $xsc->readFieldBegin(\$name, \$type, \$id);
+    },
     BinaryProtocol_FieldBegin_pp => sub {
         my ($name, $type, $id);   
         $ppp->writeFieldBegin('start', TType::STRING, 2600);
@@ -92,6 +108,11 @@ cmpthese( -5, {
         my ($keytype, $valtype, $size);
         $xsp->writeMapBegin(TType::STRING, TType::LIST, 42);
         $xsp->readMapBegin(\$keytype, \$valtype, \$size);
+    },
+    BinaryProtocol_MapBegin_xsc => sub {
+        my ($keytype, $valtype, $size);
+        $xsc->writeMapBegin(TType::STRING, TType::LIST, 42);
+        $xsc->readMapBegin(\$keytype, \$valtype, \$size);
     },
     BinaryProtocol_MapBegin_pp => sub {
         my ($keytype, $valtype, $size);
@@ -111,6 +132,11 @@ cmpthese( -5, {
         $xsp->writeListBegin(TType::STRUCT, 12345);
         $xsp->readListBegin(\$elemtype, \$size);
     },
+    BinaryProtocol_ListBegin_xsc => sub {
+        my ($elemtype, $size);
+        $xsc->writeListBegin(TType::STRUCT, 12345);
+        $xsc->readListBegin(\$elemtype, \$size);
+    },
     BinaryProtocol_ListBegin_pp => sub {
         my ($elemtype, $size);
         $ppp->writeListBegin(TType::STRUCT, 12345);
@@ -128,6 +154,11 @@ cmpthese( -5, {
         my ($elemtype, $size);
         $xsp->writeSetBegin(TType::I16, 12345);
         $xsp->readSetBegin(\$elemtype, \$size);
+    },
+    BinaryProtocol_SetBegin_xsc => sub {
+        my ($elemtype, $size);
+        $xsc->writeSetBegin(TType::I16, 12345);
+        $xsc->readSetBegin(\$elemtype, \$size);
     },
     BinaryProtocol_SetBegin_pp => sub {
         my ($elemtype, $size);
@@ -147,6 +178,11 @@ cmpthese( -5, {
         $xsp->writeBool('true');
         $xsp->readBool(\$value);
     },
+    BinaryProtocol_Bool_xsc => sub {
+        my $value;
+        $xsc->writeBool('true');
+        $xsc->readBool(\$value);
+    },
     BinaryProtocol_Bool_pp => sub {
         my $value;
         $ppp->writeBool('true');
@@ -164,6 +200,11 @@ cmpthese( -5, {
         my $value;
         $xsp->writeByte(100);
         $xsp->readByte(\$value);
+    },
+    BinaryProtocol_Byte_xsc => sub {
+        my $value;
+        $xsc->writeByte(100);
+        $xsc->readByte(\$value);
     },
     BinaryProtocol_Byte_pp => sub {
         my $value;
@@ -183,6 +224,11 @@ cmpthese( -5, {
         $xsp->writeI16(65534);
         $xsp->readI16(\$value);
     },
+    BinaryProtocol_I16_xsc => sub {
+        my $value;
+        $xsc->writeI16(65534);
+        $xsc->readI16(\$value);
+    },
     BinaryProtocol_I16_pp => sub {
         my $value;
         $ppp->writeI16(65534);
@@ -200,6 +246,11 @@ cmpthese( -5, {
         my $value;
         $xsp->writeI32(1024 * 1024);
         $xsp->readI32(\$value);
+    },
+    BinaryProtocol_I32_xsc => sub {
+        my $value;
+        $xsc->writeI32(1024 * 1024);
+        $xsc->readI32(\$value);
     },
     BinaryProtocol_I32_pp => sub {
         my $value;
@@ -219,6 +270,11 @@ cmpthese( -5, {
         $xsp->writeI64((1 << 37) * -1234);
         $xsp->readI64(\$value);
     },
+    BinaryProtocol_I64_xsc => sub {
+        my $value;
+        $xsc->writeI64((1 << 37) * -1234);
+        $xsc->readI64(\$value);
+    },
     BinaryProtocol_I64_pp => sub {
         my $value;
         $ppp->writeI64((1 << 37) * -1234);
@@ -237,6 +293,11 @@ cmpthese( -5, {
         $xsp->writeDouble(-3.14159);
         $xsp->readDouble(\$value);
     },
+    BinaryProtocol_Double_xsc => sub {
+        my $value;
+        $xsc->writeDouble(-3.14159);
+        $xsc->readDouble(\$value);
+    },
     BinaryProtocol_Double_pp => sub {
         my $value;
         $ppp->writeDouble(-3.14159);
@@ -254,6 +315,11 @@ cmpthese( -5, {
         my $value;
         $xsp->writeString('This is a unicode test with русский');
         $xsp->readString(\$value);
+    },
+    BinaryProtocol_String_xsc => sub {
+        my $value;
+        $xsc->writeString('This is a unicode test with русский');
+        $xsc->readString(\$value);
     },
     BinaryProtocol_String_pp => sub {
         my $value;
