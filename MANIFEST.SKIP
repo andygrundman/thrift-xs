@@ -27,7 +27,12 @@
 \.DS_Store$
 \bautom4te.cache
 \bconfig.status
+\bXS.bs$
+\bXS.c$
+\bXS.o$
 
 # No tarballs!
 \.gz$
 
+# Dev stuff
+TODO
