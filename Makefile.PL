@@ -30,4 +30,10 @@ WriteMakefile(
     LIBS              => [ join(' ', @LIBPATH, @LIBS) ],
     DEFINE            => $DEFINES,
     depend            => { 'XS.c' => "$inc_files $src_files $xs_files" },
+    META_MERGE        => {
+        resources => {
+            license    => 'http://www.apache.org/licenses/LICENSE-2.0',
+            repository => 'https://github.com/andygrundman/thrift-xs',
+        },
+    },
 );
