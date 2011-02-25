@@ -1,7 +1,6 @@
 use strict;
 
 use utf8;
-use Data::Dump qw(dump); # XXX remove
 use Test::More;
 use Test::BinaryData;
 use Thrift::XS;

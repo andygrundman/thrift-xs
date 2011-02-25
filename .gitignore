@@ -1,5 +1,6 @@
 *.o
 Makefile
+Makefile.old
 XS.xsc
 XS.c
 XS.bs
