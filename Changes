@@ -4,6 +4,7 @@ Revision history for Perl extension Thrift::XS.
         - Added compact protocol support.
         - Documented the rest of the XS modules.
         - Fixed bug in writeBool that caused it to always write a true value.
+        - Fixed bug in readFieldBegin where T_STOP was not handled properly.
 
 1.00    2011-02-22
         - Initial release.

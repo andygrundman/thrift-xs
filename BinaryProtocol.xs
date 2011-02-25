@@ -4,6 +4,8 @@ void
 writeMessageBegin(SV *self, SV *name, int type, int seqid)
 CODE:
 {
+  DEBUG_TRACE("writeMessageBegin()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *namecopy = sv_mortalcopy(name); // because we can't modify the original name
   sv_utf8_encode(namecopy);
@@ -47,6 +49,8 @@ void
 writeFieldBegin(SV *self, SV * /*name*/, int type, int id)
 CODE:
 {
+  DEBUG_TRACE("writeFieldBegin(type %d, id %d)\n", type, id);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[3];
   
@@ -66,6 +70,8 @@ void
 writeFieldStop(SV *self)
 CODE:
 {
+  DEBUG_TRACE("writeFieldStop()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   char data[1];
   data[0] = T_STOP;
@@ -77,6 +83,8 @@ void
 writeMapBegin(SV *self, int keytype, int valtype, int size)
 CODE:
 {
+  DEBUG_TRACE("writeMapBegin(keytype %d, valtype %d, size %d)\n", keytype, valtype, size);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[6];
   
@@ -96,6 +104,8 @@ void
 writeListBegin(SV *self, int elemtype, int size)
 CODE:
 {
+  DEBUG_TRACE("writeListBegin(elemtype %d, size %d)\n", elemtype, size);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[5];
   
@@ -114,6 +124,8 @@ void
 writeSetBegin(SV *self, int elemtype, int size)
 CODE:
 {
+  DEBUG_TRACE("writeSetBegin(elemtype %d, size %d)\n", elemtype, size);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[5];
   
@@ -132,6 +144,8 @@ void
 writeBool(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("writeBool(%d)\n", SvTRUE(value) ? 1 : 0);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[1];
   
@@ -144,6 +158,8 @@ void
 writeByte(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("writeByte(%d)\n", SvIV(value) & 0xff);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[1];
   
@@ -156,6 +172,8 @@ void
 writeI16(SV *self, int value)
 CODE:
 {
+  DEBUG_TRACE("writeI16(%d)\n", value);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[2];
   
@@ -168,6 +186,8 @@ void
 writeI32(SV *self, int value)
 CODE:
 {
+  DEBUG_TRACE("writeI32(%d)\n", value);
+  
   SV *trans = GET_TRANSPORT(self);
   char data[4];
   
@@ -180,6 +200,8 @@ void
 writeI64(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("writeI64(%lld)\n", (int64_t)SvNV(value));
+  
   SV *trans = GET_TRANSPORT(self);
   char data[8];
   int64_t i64 = (int64_t)SvNV(value);
@@ -200,6 +222,8 @@ void
 writeDouble(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("writeDouble(%f)\n", (double)SvNV(value));
+  
   SV *trans = GET_TRANSPORT(self);
   char data[8];
   union {
@@ -225,6 +249,8 @@ void
 writeString(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("writeString(%s)\n", SvPVX(value));
+  
   SV *trans = GET_TRANSPORT(self);
   SV *valuecopy = sv_mortalcopy(value);
   sv_utf8_encode(valuecopy);
@@ -243,6 +269,8 @@ void
 readMessageBegin(SV *self, SV *name, SV *type, SV *seqid)
 CODE:
 {
+  DEBUG_TRACE("readMessageBegin()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   int version;
@@ -303,6 +331,8 @@ void
 readStructBegin(SV *, SV *name)
 CODE:
 {
+  DEBUG_TRACE("readStructBegin()\n");
+  
   if (SvROK(name))
     sv_setpv(SvRV(name), "");
 }
@@ -316,11 +346,13 @@ void
 readFieldBegin(SV *self, SV * /*name*/, SV *fieldtype, SV *fieldid)
 CODE:
 {
+  DEBUG_TRACE("readFieldBegin()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 3);
+  READ_SV(trans, tmp, 1);
   tmps = SvPVX(tmp);
   
   // fieldtype byte
@@ -334,10 +366,14 @@ CODE:
   }
   
   // fieldid i16
-  int fid;
-  I16_TO_INT(fid, tmps, 1);
-  if (SvROK(fieldid))
-    sv_setiv(SvRV(fieldid), fid);
+  {
+    READ_SV(trans, tmp, 2);
+    tmps = SvPVX(tmp);
+    int fid;
+    I16_TO_INT(fid, tmps, 0);
+    if (SvROK(fieldid))
+      sv_setiv(SvRV(fieldid), fid);
+  }
 }
 
 void
@@ -349,6 +385,8 @@ void
 readMapBegin(SV *self, SV *keytype, SV *valtype, SV *size)
 CODE:
 {
+  DEBUG_TRACE("readMapBegin()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -380,6 +418,8 @@ void
 readListBegin(SV *self, SV *elemtype, SV *size)
 CODE:
 {
+  DEBUG_TRACE("readListBegin()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -407,6 +447,8 @@ void
 readSetBegin(SV *self, SV *elemtype, SV *size)
 CODE:
 {
+  DEBUG_TRACE("readSetBegin()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -434,6 +476,8 @@ void
 readBool(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readBool()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -449,6 +493,8 @@ void
 readByte(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readByte()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -464,6 +510,8 @@ void
 readI16(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readI16()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -481,6 +529,8 @@ void
 readI32(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readI32()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -498,6 +548,8 @@ void
 readI64(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readI64()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -518,6 +570,8 @@ void
 readDouble(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readDouble()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
@@ -544,6 +598,8 @@ void
 readString(SV *self, SV *value)
 CODE:
 {
+  DEBUG_TRACE("readString()\n");
+  
   SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;

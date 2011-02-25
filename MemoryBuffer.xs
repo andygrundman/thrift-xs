@@ -89,7 +89,7 @@ CODE:
   
   DEBUG_TRACE("readAll(%d)\n", len);
 #ifdef XS_DEBUG
-  buffer_dump(mbuf->buffer, len);
+  //buffer_dump(mbuf->buffer, len);
 #endif
   
   RETVAL = newSVpvn( buffer_ptr(mbuf->buffer), len );
@@ -113,7 +113,7 @@ CODE:
   
   DEBUG_TRACE("write(%d)\n", len);
 #ifdef XS_DEBUG
-  buffer_dump(mbuf->buffer, 0);
+  //buffer_dump(mbuf->buffer, 0);
 #endif
 }
   
