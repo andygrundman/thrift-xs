@@ -7,7 +7,7 @@ use Thrift::XS;
 use Thrift::MemoryBuffer;
 use Thrift::BinaryProtocol;
 
-plan tests => 41;
+plan tests => 42;
 
 # Tests compare pure Perl output with XS output
 my $xst = Thrift::XS::MemoryBuffer->new;
@@ -15,6 +15,12 @@ my $xsp = Thrift::XS::BinaryProtocol->new($xst);
 
 my $ppt = Thrift::MemoryBuffer->new;
 my $ppp = Thrift::BinaryProtocol->new($ppt);
+
+# Test that getTransport works
+{
+    my $t = $xsp->getTransport();
+    isa_ok($t, 'Thrift::XS::MemoryBuffer', "getTransport ok");
+}
 
 my $test = sub {
     my $method = shift;

@@ -8,6 +8,10 @@ CODE:
   New(0, p, sizeof(TBinaryProtocol), TBinaryProtocol);
   New(0, p->last_fields, sizeof(struct fieldq), struct fieldq);
 
+  MEM_TRACE("new()\n");
+  MEM_TRACE("  New p @ %p\n", p);
+  MEM_TRACE("  New last_fields @ %p\n", p->last_fields);
+
   if (sv_isa(transport, "Thrift::XS::MemoryBuffer"))
     p->mbuf = (TMemoryBuffer *)xs_object_magic_get_struct_rv_pretty(aTHX_ transport, "mbuf");
   else
@@ -27,6 +31,37 @@ CODE:
     (void *)p,
     gv_stashpv(klass, 0)
   );
+}
+OUTPUT:
+  RETVAL
+
+void
+DESTROY(TBinaryProtocol *p)
+CODE:
+{
+  MEM_TRACE("DESTROY()\n");
+  
+  // clear field queue
+  struct field_entry *entry;
+  while (!SIMPLEQ_EMPTY(p->last_fields)) {
+    entry = SIMPLEQ_FIRST(p->last_fields);
+    SIMPLEQ_REMOVE_HEAD(p->last_fields, entries);
+    MEM_TRACE("  free entry @ %p\n", entry);
+    Safefree(entry);
+  }
+  
+  MEM_TRACE("  free last_fields @ %p\n", p->last_fields);
+  Safefree(p->last_fields);
+  MEM_TRACE("  free p @ %p\n", p);
+  Safefree(p);
+}
+
+SV *
+getTransport(TBinaryProtocol *p)
+CODE:
+{
+  SvREFCNT_inc(p->transport);
+  RETVAL = p->transport;
 }
 OUTPUT:
   RETVAL

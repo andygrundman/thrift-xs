@@ -5,10 +5,16 @@ use Test::More;
 use Test::BinaryData;
 use Thrift::XS;
 
-plan tests => 57;
+plan tests => 58;
 
 my $xst = Thrift::XS::MemoryBuffer->new;
 my $xsp = Thrift::XS::CompactProtocol->new($xst);
+
+# Test that getTransport works
+{
+    my $t = $xsp->getTransport();
+    isa_ok($t, 'Thrift::XS::MemoryBuffer', "getTransport ok");
+}
 
 my $test = sub {
     my ($method, $args, $expect) = @_;

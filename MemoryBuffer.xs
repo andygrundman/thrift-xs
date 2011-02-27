@@ -9,6 +9,10 @@ CODE:
   New(0, mbuf, sizeof(TMemoryBuffer), TMemoryBuffer);
   New(0, mbuf->buffer, sizeof(Buffer), Buffer);
   
+  MEM_TRACE("new()\n");
+  MEM_TRACE("  New mbuf @ %p\n", mbuf);
+  MEM_TRACE("  New buffer @ %p\n", mbuf->buffer);
+  
   if (items > 1 && SvIOK_UV(ST(1)))
     bufsize = SvIV(ST(1));
   
@@ -121,6 +125,10 @@ void
 DESTROY(TMemoryBuffer *mbuf)
 CODE:
 {
+  MEM_TRACE("DESTROY()\n");
+  MEM_TRACE("  free buffer @ %p\n", mbuf->buffer);
+  MEM_TRACE("  free mbuf @ %p\n", mbuf);
+  
   buffer_free(mbuf->buffer);
   Safefree(mbuf->buffer);
   Safefree(mbuf);

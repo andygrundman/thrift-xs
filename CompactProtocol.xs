@@ -19,6 +19,7 @@ CODE:
   while (!SIMPLEQ_EMPTY(p->last_fields)) {
     entry = SIMPLEQ_FIRST(p->last_fields);
     SIMPLEQ_REMOVE_HEAD(p->last_fields, entries);
+    MEM_TRACE("free entry @ %p\n", entry);
     Safefree(entry);
   }
 }
@@ -68,6 +69,7 @@ CODE:
   // and reset last_field_id to 0
   struct field_entry *entry;
   New(0, entry, sizeof(struct field_entry), struct field_entry);
+  MEM_TRACE("New entry @ %p\n", entry);
   entry->field_id = p->last_field_id;
   SIMPLEQ_INSERT_HEAD(p->last_fields, entry, entries);
   
@@ -90,6 +92,7 @@ CODE:
   
   DEBUG_TRACE("writeStructEnd(), remove_head %d\n", entry->field_id);
   
+  MEM_TRACE("free entry @ %p\n", entry);
   Safefree(entry);
 }
 
@@ -327,6 +330,7 @@ CODE:
   // No reading here, but we push last_field_id onto the fields stack
   struct field_entry *entry;
   New(0, entry, sizeof(struct field_entry), struct field_entry);
+  MEM_TRACE("New entry @ %p\n", entry);
   entry->field_id = p->last_field_id;
   SIMPLEQ_INSERT_HEAD(p->last_fields, entry, entries);
   
@@ -347,6 +351,7 @@ CODE:
   SIMPLEQ_REMOVE_HEAD(p->last_fields, entries);
   p->last_field_id = entry->field_id;
   
+  MEM_TRACE("free entry @ %p\n", entry);
   Safefree(entry);
 }
 
@@ -382,6 +387,7 @@ CODE:
     // pop field
     struct field_entry *entry = SIMPLEQ_FIRST(p->last_fields);
     SIMPLEQ_REMOVE_HEAD(p->last_fields, entries);
+    MEM_TRACE("free entry @ %p\n", entry);
     Safefree(entry);
     
     // not a delta. look ahead for the zigzag varint field id.
@@ -394,6 +400,7 @@ CODE:
     struct field_entry *entry = SIMPLEQ_FIRST(p->last_fields);
     SIMPLEQ_REMOVE_HEAD(p->last_fields, entries);
     int last = entry->field_id;
+    MEM_TRACE("free entry @ %p\n", entry);
     Safefree(entry);
     
     fid = last + modifier;
@@ -408,6 +415,7 @@ CODE:
   // push the new field onto the field stack so we can keep the deltas going.
   struct field_entry *entry;
   New(0, entry, sizeof(struct field_entry), struct field_entry);
+  MEM_TRACE("New entry @ %p\n", entry);
   entry->field_id = fid;
   SIMPLEQ_INSERT_HEAD(p->last_fields, entry, entries);
   
