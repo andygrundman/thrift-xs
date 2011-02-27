@@ -3,6 +3,11 @@ Win32 support
 
 Improve varint performance, buffer_read/write_varint, etc
 
+Provide higher-performance versions using XS::MemoryBuffer of:
+  BufferedTransport
+  FramedTransport
+  HttpClient
+
 #   Failed test 'writeI64 ok (256)'
 #   at t/compact.t line 22.
 # have (hex)               have           want (hex)               want        

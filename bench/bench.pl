@@ -14,11 +14,9 @@ my $xsc = Thrift::XS::CompactProtocol->new($xst);
 my $ppt = Thrift::MemoryBuffer->new;
 my $ppp = Thrift::BinaryProtocol->new($ppt);
 
-goto HERE;
-
 #                     Rate MemoryBuffer_pp MemoryBuffer_xs
-# MemoryBuffer_pp 120993/s              --            -84%
-# MemoryBuffer_xs 778645/s            544%              --
+# MemoryBuffer_pp 122530/s              --            -83%
+# MemoryBuffer_xs 735583/s            500%              --
 #
 cmpthese( -5, {
     MemoryBuffer_xs => sub {

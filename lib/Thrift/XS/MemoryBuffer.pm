@@ -30,7 +30,7 @@ Thrift::XS::MemoryBuffer - Fast memory buffer
 =head1 DESCRIPTION
 
 This module is useful when writing your own socket-layer implementation, for example,
-with L<AnyEvent::Cassandra>.
+it is used with L<AnyEvent::Cassandra>.
 
 =head1 METHODS
 

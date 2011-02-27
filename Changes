@@ -1,5 +1,9 @@
 Revision history for Perl extension Thrift::XS.
 
+1.02
+        - Large performance boost by using direct buffer operations if
+          also using XS::MemoryBuffer.
+
 1.01    2011-02-24
         - Added compact protocol support.
         - Documented the rest of the XS modules.
