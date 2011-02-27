@@ -3,7 +3,25 @@
 
 #include <stdint.h>
 
-#include "common.h"
+#include "simple_queue.h"
+
+struct field_entry {
+  int field_id;
+  SIMPLEQ_ENTRY(field_entry) entries;
+};
+SIMPLEQ_HEAD(fieldq, field_entry);
+
+typedef struct {
+  SV *transport;       // Transport instance
+  TMemoryBuffer *mbuf; // XS MemoryBuffer instance, if we're using it
+  
+  // Data for compact protocol state
+  int bool_type;
+  int bool_id;
+  int bool_value_id;
+  int last_field_id;
+  struct fieldq *last_fields;   // a stack, using INSERT_HEAD/REMOVE_HEAD
+} TBinaryProtocol;
 
 // normal types
 enum TType {
@@ -80,41 +98,64 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
   dst = ((uint8_t)src[1+off] |      \
   (((uint8_t)src[0+off]) << 8))
 
-#define GET_TRANSPORT(self) *(my_hv_fetch((HV *)SvRV(self), "trans"))
+#define WRITE(p, str, len)                                     \
+  if (likely(p->mbuf)) {                                       \
+    buffer_append(p->mbuf->buffer, (void *)str, len);          \
+  }                                                            \
+  else {                                                       \
+    dSP; ENTER; SAVETMPS;                                      \
+    PUSHMARK(SP);                                              \
+    XPUSHs(p->transport);                                      \
+    XPUSHs(sv_2mortal(newSVpvn(str, len)));                    \
+    PUTBACK;                                                   \
+    call_method("write", G_DISCARD);                           \
+    FREETMPS; LEAVE;                                           \
+  }
 
-#define WRITE(trans, str, len)             \
-  dSP; ENTER; SAVETMPS;                    \
-  PUSHMARK(SP);                            \
-  XPUSHs(trans);                           \
-  XPUSHs(sv_2mortal(newSVpvn(str, len)));  \
-  PUTBACK;                                 \
-  call_method("write", G_DISCARD);         \
-  FREETMPS; LEAVE
+// This macro uses an optimized direct buffer write if possible
+#define WRITE_SV(p, sv)                                              \
+  if (likely(p->mbuf)) {                                             \
+    buffer_append(p->mbuf->buffer, (void *)SvPVX(sv), sv_len(sv));   \
+  }                                                                  \
+  else {                                                             \
+    dSP; ENTER; SAVETMPS;                                            \
+    PUSHMARK(SP);                                                    \
+    XPUSHs(p->transport);                                            \
+    XPUSHs(sv);                                                      \
+    PUTBACK;                                                         \
+    call_method("write", G_DISCARD);                                 \
+    FREETMPS; LEAVE;                                                 \
+  }
 
-#define WRITE_SV(trans, sv)                \
-  dSP; ENTER; SAVETMPS;                    \
-  PUSHMARK(SP);                            \
-  XPUSHs(trans);                           \
-  XPUSHs(sv);                              \
-  PUTBACK;                                 \
-  call_method("write", G_DISCARD);         \
-  FREETMPS; LEAVE
-
-#define READ_SV(trans, dst, len)           \
-  dSP; ENTER; SAVETMPS;                    \
-  PUSHMARK(SP);                            \
-  XPUSHs(trans);                           \
-  XPUSHs(sv_2mortal(newSViv(len)));        \
-  PUTBACK;                                 \
-  call_method("readAll", G_SCALAR);        \
-  SPAGAIN;                                 \
-  dst = newSVsv(POPs);                     \
-  PUTBACK;                                 \
-  FREETMPS; LEAVE;                         \
+// This macro uses an optimized direct buffer read if the XS MemoryBuffer
+// code is in use.  If another transport is being used, it calls through to
+// the readAll method (slow)
+#define READ_SV(p, dst, len)                                                        \
+  if (likely(p->mbuf)) {                                                            \
+    int avail = buffer_len(p->mbuf->buffer);                                        \
+    if (avail < len) {                                                              \
+      THROW_SV("TTransportException",                                               \
+        newSVpvf("Attempt to readAll(%lld) found only %d available", (uint64_t)len, avail));    \
+    }                                                                               \
+    dst = newSVpvn( buffer_ptr(p->mbuf->buffer), len );                             \
+    buffer_consume(p->mbuf->buffer, len);                                           \
+  }                                                                                 \
+  else {                                                                            \
+    dSP; ENTER; SAVETMPS;                                                           \
+    PUSHMARK(SP);                                                                   \
+    XPUSHs(p->transport);                                                           \
+    XPUSHs(sv_2mortal(newSViv(len)));                                               \
+    PUTBACK;                                                                        \
+    call_method("readAll", G_SCALAR);                                               \
+    SPAGAIN;                                                                        \
+    dst = newSVsv(POPs);                                                            \
+    PUTBACK;                                                                        \
+    FREETMPS; LEAVE;                                                                \
+  }                                                                                 \
   sv_2mortal(dst)
 
 // These work for both 32-bit and 64-bit
-#define UINT_TO_VARINT(len, dst, src, off)   \
+#define UINT_TO_VARINT(len, dst, src, off)     \
   {                                            \
     len = 0;                                   \
     while (src > 0x7f) {                       \
@@ -125,7 +166,7 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
   }
 
 // dst can be a uint32_t or uint64_t
-#define READ_VARINT(trans, dst)                           \
+#define READ_VARINT(p, dst)                               \
   {                                                       \
     dst = 0;                                              \
     int count = 0;                                        \
@@ -136,7 +177,7 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
         dst = 0;                                          \
         break;                                            \
       }                                                   \
-      READ_SV(trans, b, 1);                               \
+      READ_SV(p, b, 1);                                   \
       bs = SvPVX(b);                                      \
       dst |= (uint64_t)(bs[0] & 0x7f) << (7 * count);     \
       ++count;                                            \
@@ -209,24 +250,16 @@ zigzag_to_ll(uint64_t n)
 }
 
 static void
-write_field_begin_internal(SV *self, int type, int id, int type_override)
+write_field_begin_internal(TBinaryProtocol *p, int type, int id, int type_override)
 {
-  SV *trans = GET_TRANSPORT(self);
-  HV *selfh = (HV *)SvRV(self);
-  char data[4];
-  
-  // Get last ID
-  int last_field_id = SvIV(*(my_hv_fetch(selfh, "last_field_id")));
-  
+  char data[4];  
   int type_to_write = type_override == -1 ? get_compact_type(type) : type_override;
   
-  DEBUG_TRACE("id %d, last_field_id %d, type_to_write %d\n", id, last_field_id, type_to_write);
-  
   // check if we can use delta encoding for the field id
-  if (id > last_field_id && id - last_field_id <= 15) {
+  if (id > p->last_field_id && id - p->last_field_id <= 15) {
     // write them together
-    data[0] = ((id - last_field_id) << 4) | type_to_write;
-    WRITE(trans, data, 1);
+    data[0] = ((id - p->last_field_id) << 4) | type_to_write;
+    WRITE(p, data, 1);
   }
   else {
     // write them separate
@@ -235,27 +268,26 @@ write_field_begin_internal(SV *self, int type, int id, int type_override)
     uint32_t uid = int_to_zigzag(id);
 
     UINT_TO_VARINT(varlen, data, uid, 1);
-    WRITE(trans, data, varlen + 1);
+    WRITE(p, data, varlen + 1);
   }
   
-  my_hv_store(selfh, "last_field_id", newSViv(id));
+  p->last_field_id = id;
 }
 
 static void
-write_collection_begin_internal(SV *self, int elemtype, uint32_t size)
+write_collection_begin_internal(TBinaryProtocol *p, int elemtype, uint32_t size)
 {
-  SV *trans = GET_TRANSPORT(self);
   char data[6];
   
   if (size <= 14) {
     data[0] = (size << 4) | get_compact_type(elemtype);
-    WRITE(trans, data, 1);
+    WRITE(p, data, 1);
   }
   else {
     int varlen;
     data[0] = 0xf0 | get_compact_type(elemtype);
     UINT_TO_VARINT(varlen, data, size, 1);
-    WRITE(trans, data, varlen + 1);
+    WRITE(p, data, varlen + 1);
   }
 }
 

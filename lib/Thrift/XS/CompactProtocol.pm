@@ -1,20 +1,9 @@
 package Thrift::XS::CompactProtocol;
 
 use strict;
-use base('Thrift::Protocol');
+use base('Thrift::XS::BinaryProtocol');
 
-# Most implementation is in CompactProtocol.xs
-
-sub new {
-    my $class = shift;
-    my $self  = $class->SUPER::new(@_);
-    
-    # Some state is needed for compact encoding
-    $self->{last_field_id} = 0;
-    $self->{last_fields}   = [];
-
-    return bless $self, $class;
-}
+# Implementation is in CompactProtocol.xs
 
 1;
 __END__

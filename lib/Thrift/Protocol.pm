@@ -328,7 +328,6 @@ sub skip
     my $type = shift;
 
     my $ref;
-    my $result;
     my $i;
 
     if($type == TType::BOOL)
@@ -356,49 +355,49 @@ sub skip
     }
     elsif($type == TType::STRUCT)
     {
-        $result = $self->readStructBegin(\$ref);
+        $self->readStructBegin(\$ref);
         while (1) {
             my ($ftype,$fid);
-            $result += $self->readFieldBegin(\$ref, \$ftype, \$fid);
+            $self->readFieldBegin(\$ref, \$ftype, \$fid);
             if ($ftype == TType::STOP) {
                 last;
             }
-            $result += $self->skip($ftype);
-            $result += $self->readFieldEnd();
+            $self->skip($ftype);
+            $self->readFieldEnd();
         }
-        $result += $self->readStructEnd();
-        return $result;
+        $self->readStructEnd();
+        return;
     }
     elsif($type == TType::MAP)
     {
         my($keyType,$valType,$size);
-        $result = $self->readMapBegin(\$keyType, \$valType, \$size);
+        $self->readMapBegin(\$keyType, \$valType, \$size);
         for ($i = 0; $i < $size; $i++) {
-          $result += $self->skip($keyType);
-          $result += $self->skip($valType);
+          $self->skip($keyType);
+          $self->skip($valType);
         }
-        $result += $self->readMapEnd();
-        return $result;
+        $self->readMapEnd();
+        return;
     }
     elsif($type == TType::SET)
     {
         my ($elemType,$size);
-        $result = $self->readSetBegin(\$elemType, \$size);
+        $self->readSetBegin(\$elemType, \$size);
         for ($i = 0; $i < $size; $i++) {
-            $result += $self->skip($elemType);
+            $self->skip($elemType);
         }
-        $result += $self->readSetEnd();
-        return $result;
+        $self->readSetEnd();
+        return;
     }
     elsif($type == TType::LIST)
     {
         my ($elemType,$size);
-        $result = $self->readListBegin(\$elemType, \$size);
+        $self->readListBegin(\$elemType, \$size);
         for ($i = 0; $i < $size; $i++) {
-            $result += $self->skip($elemType);
+            $self->skip($elemType);
         }
-        $result += $self->readListEnd();
-        return $result;
+        $self->readListEnd();
+        return;
     }
 
     die new Thrift::TException("Type $type not recognised --- corrupt data?");

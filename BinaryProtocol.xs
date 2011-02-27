@@ -1,12 +1,42 @@
 MODULE = Thrift::XS   PACKAGE = Thrift::XS::BinaryProtocol
 
+SV *
+new(char *klass, SV *transport)
+CODE:
+{
+  TBinaryProtocol *p;
+  New(0, p, sizeof(TBinaryProtocol), TBinaryProtocol);
+  New(0, p->last_fields, sizeof(struct fieldq), struct fieldq);
+
+  if (sv_isa(transport, "Thrift::XS::MemoryBuffer"))
+    p->mbuf = (TMemoryBuffer *)xs_object_magic_get_struct_rv_pretty(aTHX_ transport, "mbuf");
+  else
+    p->mbuf = NULL;
+    
+  p->transport = transport;
+  
+  p->bool_type     = -1;
+  p->bool_id       = -1;
+  p->bool_value_id = -1;
+  p->last_field_id = 0;
+  
+  SIMPLEQ_INIT(p->last_fields);
+
+  RETVAL = xs_object_magic_create(
+    aTHX_
+    (void *)p,
+    gv_stashpv(klass, 0)
+  );
+}
+OUTPUT:
+  RETVAL
+
 void
-writeMessageBegin(SV *self, SV *name, int type, int seqid)
+writeMessageBegin(TBinaryProtocol *p, SV *name, int type, int seqid)
 CODE:
 {
   DEBUG_TRACE("writeMessageBegin()\n");
   
-  SV *trans = GET_TRANSPORT(self);
   SV *namecopy = sv_mortalcopy(name); // because we can't modify the original name
   sv_utf8_encode(namecopy);
   int namelen = sv_len(namecopy);
@@ -27,7 +57,7 @@ CODE:
   INT_TO_I32(i32, seqid, 0);
   sv_catpvn(data, i32, 4);
   
-  WRITE_SV(trans, data);
+  WRITE_SV(p, data);
 }
 
 void
@@ -46,19 +76,17 @@ CODE:
 { }
 
 void
-writeFieldBegin(SV *self, SV * /*name*/, int type, int id)
+writeFieldBegin(TBinaryProtocol *p, SV * /*name*/, int type, int id)
 CODE:
 {
   DEBUG_TRACE("writeFieldBegin(type %d, id %d)\n", type, id);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[3];
   
   data[0] = type & 0xff;      // byte
   data[1] = (id >> 8) & 0xff; // i16
   data[2] = id & 0xff;
   
-  WRITE(trans, data, 3);
+  WRITE(p, data, 3);
 }
 
 void
@@ -67,32 +95,29 @@ CODE:
 { }
 
 void
-writeFieldStop(SV *self)
+writeFieldStop(TBinaryProtocol *p)
 CODE:
 {
   DEBUG_TRACE("writeFieldStop()\n");
   
-  SV *trans = GET_TRANSPORT(self);
   char data[1];
   data[0] = T_STOP;
   
-  WRITE(trans, data, 1);
+  WRITE(p, data, 1);
 }
 
 void
-writeMapBegin(SV *self, int keytype, int valtype, int size)
+writeMapBegin(TBinaryProtocol *p, int keytype, int valtype, int size)
 CODE:
 {
   DEBUG_TRACE("writeMapBegin(keytype %d, valtype %d, size %d)\n", keytype, valtype, size);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[6];
   
   data[0] = keytype & 0xff;
   data[1] = valtype & 0xff;
   INT_TO_I32(data, size, 2);
 
-  WRITE(trans, data, 6);
+  WRITE(p, data, 6);
 }
 
 void
@@ -101,18 +126,16 @@ CODE:
 { }
 
 void
-writeListBegin(SV *self, int elemtype, int size)
+writeListBegin(TBinaryProtocol *p, int elemtype, int size)
 CODE:
 {
   DEBUG_TRACE("writeListBegin(elemtype %d, size %d)\n", elemtype, size);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[5];
   
   data[0] = elemtype & 0xff;
   INT_TO_I32(data, size, 1);
   
-  WRITE(trans, data, 5);
+  WRITE(p, data, 5);
 }
 
 void
@@ -121,18 +144,16 @@ CODE:
 { }
 
 void
-writeSetBegin(SV *self, int elemtype, int size)
+writeSetBegin(TBinaryProtocol *p, int elemtype, int size)
 CODE:
 {
   DEBUG_TRACE("writeSetBegin(elemtype %d, size %d)\n", elemtype, size);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[5];
   
   data[0] = elemtype & 0xff;
   INT_TO_I32(data, size, 1);
   
-  WRITE(trans, data, 5);
+  WRITE(p, data, 5);
 }
 
 void
@@ -141,68 +162,58 @@ CODE:
 { }
 
 void
-writeBool(SV *self, SV *value)
+writeBool(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("writeBool(%d)\n", SvTRUE(value) ? 1 : 0);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[1];
   
   data[0] = SvTRUE(value) ? 1 : 0;
   
-  WRITE(trans, data, 1);
+  WRITE(p, data, 1);
 }
 
 void
-writeByte(SV *self, SV *value)
+writeByte(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("writeByte(%d)\n", SvIV(value) & 0xff);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[1];
   
   data[0] = SvIV(value) & 0xff;
   
-  WRITE(trans, data, 1);
+  WRITE(p, data, 1);
 }
 
 void
-writeI16(SV *self, int value)
+writeI16(TBinaryProtocol *p, int value)
 CODE:
 {
   DEBUG_TRACE("writeI16(%d)\n", value);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[2];
   
   INT_TO_I16(data, value, 0);
   
-  WRITE(trans, data, 2);
+  WRITE(p, data, 2);
 }
 
 void
-writeI32(SV *self, int value)
+writeI32(TBinaryProtocol *p, int value)
 CODE:
 {
   DEBUG_TRACE("writeI32(%d)\n", value);
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[4];
   
   INT_TO_I32(data, value, 0);
   
-  WRITE(trans, data, 4);
+  WRITE(p, data, 4);
 }
 
 void
-writeI64(SV *self, SV *value)
+writeI64(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("writeI64(%lld)\n", (int64_t)SvNV(value));
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[8];
   int64_t i64 = (int64_t)SvNV(value);
   
@@ -215,16 +226,14 @@ CODE:
   data[1] = (i64 >> 48) & 0xff;
   data[0] = (i64 >> 56) & 0xff;
   
-  WRITE(trans, data, 8);
+  WRITE(p, data, 8);
 }
 
 void
-writeDouble(SV *self, SV *value)
+writeDouble(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("writeDouble(%f)\n", (double)SvNV(value));
-  
-  SV *trans = GET_TRANSPORT(self);
   char data[8];
   union {
     double d;
@@ -242,16 +251,15 @@ CODE:
   data[1] = (u.i >> 48) & 0xff;
   data[0] = (u.i >> 56) & 0xff;
   
-  WRITE(trans, data, 8);
+  WRITE(p, data, 8);
 }
 
 void
-writeString(SV *self, SV *value)
+writeString(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("writeString(%s)\n", SvPVX(value));
   
-  SV *trans = GET_TRANSPORT(self);
   SV *valuecopy = sv_mortalcopy(value);
   sv_utf8_encode(valuecopy);
   int len = sv_len(valuecopy);
@@ -262,22 +270,21 @@ CODE:
   sv_setpvn(data, i32, 4);
   sv_catsv(data, valuecopy);
   
-  WRITE_SV(trans, data);
+  WRITE_SV(p, data);
 }
 
 void
-readMessageBegin(SV *self, SV *name, SV *type, SV *seqid)
+readMessageBegin(TBinaryProtocol *p, SV *name, SV *type, SV *seqid)
 CODE:
 {
   DEBUG_TRACE("readMessageBegin()\n");
   
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   int version;
   char *tmps;
   
   // read version + type
-  READ_SV(trans, tmp, 4);
+  READ_SV(p, tmp, 4);
   tmps = SvPVX(tmp);
   I32_TO_INT(version, tmps, 0);
   
@@ -292,11 +299,11 @@ CODE:
     // read string
     {
       int len;
-      READ_SV(trans, tmp, 4);
+      READ_SV(p, tmp, 4);
       tmps = SvPVX(tmp);
       I32_TO_INT(len, tmps, 0);
       if (len) {
-        READ_SV(trans, tmp, len);
+        READ_SV(p, tmp, len);
         sv_utf8_decode(tmp);
         if (SvROK(name))
           sv_setsv(SvRV(name), tmp);
@@ -310,7 +317,7 @@ CODE:
     // read seqid
     {
       int s;
-      READ_SV(trans, tmp, 4);
+      READ_SV(p, tmp, 4);
       tmps = SvPVX(tmp);
       I32_TO_INT(s, tmps, 0);
       if (SvROK(seqid))
@@ -343,16 +350,14 @@ CODE:
 { }
 
 void
-readFieldBegin(SV *self, SV * /*name*/, SV *fieldtype, SV *fieldid)
+readFieldBegin(TBinaryProtocol *p, SV * /*name*/, SV *fieldtype, SV *fieldid)
 CODE:
 {
   DEBUG_TRACE("readFieldBegin()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 1);
+  READ_SV(p, tmp, 1);
   tmps = SvPVX(tmp);
   
   // fieldtype byte
@@ -367,7 +372,7 @@ CODE:
   
   // fieldid i16
   {
-    READ_SV(trans, tmp, 2);
+    READ_SV(p, tmp, 2);
     tmps = SvPVX(tmp);
     int fid;
     I16_TO_INT(fid, tmps, 0);
@@ -382,16 +387,14 @@ CODE:
 { }
 
 void
-readMapBegin(SV *self, SV *keytype, SV *valtype, SV *size)
+readMapBegin(TBinaryProtocol *p, SV *keytype, SV *valtype, SV *size)
 CODE:
 {
   DEBUG_TRACE("readMapBegin()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 6);
+  READ_SV(p, tmp, 6);
   tmps = SvPVX(tmp);
   
   // keytype byte
@@ -415,16 +418,14 @@ CODE:
 { }
 
 void
-readListBegin(SV *self, SV *elemtype, SV *size)
+readListBegin(TBinaryProtocol *p, SV *elemtype, SV *size)
 CODE:
 {
   DEBUG_TRACE("readListBegin()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 5);
+  READ_SV(p, tmp, 5);
   tmps = SvPVX(tmp);
   
   // elemtype byte
@@ -444,16 +445,14 @@ CODE:
 { }
 
 void
-readSetBegin(SV *self, SV *elemtype, SV *size)
+readSetBegin(TBinaryProtocol *p, SV *elemtype, SV *size)
 CODE:
 {
   DEBUG_TRACE("readSetBegin()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 5);
+  READ_SV(p, tmp, 5);
   tmps = SvPVX(tmp);
   
   // elemtype byte
@@ -473,16 +472,14 @@ CODE:
 { }
 
 void
-readBool(SV *self, SV *value)
+readBool(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readBool()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 1);
+  READ_SV(p, tmp, 1);
   tmps = SvPVX(tmp);
   
   if (SvROK(value))
@@ -490,16 +487,14 @@ CODE:
 }
 
 void
-readByte(SV *self, SV *value)
+readByte(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readByte()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 1);
+  READ_SV(p, tmp, 1);
   tmps = SvPVX(tmp);
   
   if (SvROK(value))
@@ -507,16 +502,14 @@ CODE:
 }
 
 void
-readI16(SV *self, SV *value)
+readI16(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readI16()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 2);
+  READ_SV(p, tmp, 2);
   tmps = SvPVX(tmp);
   
   int v;
@@ -526,16 +519,14 @@ CODE:
 }
 
 void
-readI32(SV *self, SV *value)
+readI32(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readI32()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 4);
+  READ_SV(p, tmp, 4);
   tmps = SvPVX(tmp);
   
   int v;
@@ -545,16 +536,14 @@ CODE:
 }
 
 void
-readI64(SV *self, SV *value)
+readI64(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readI64()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 8);
+  READ_SV(p, tmp, 8);
   tmps = SvPVX(tmp);
   
   uint64_t hi;
@@ -567,16 +556,14 @@ CODE:
 }
 
 void
-readDouble(SV *self, SV *value)
+readDouble(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readDouble()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
-  READ_SV(trans, tmp, 8);
+  READ_SV(p, tmp, 8);
   tmps = SvPVX(tmp);
   
   uint64_t hi;
@@ -595,21 +582,19 @@ CODE:
 }
 
 void
-readString(SV *self, SV *value)
+readString(TBinaryProtocol *p, SV *value)
 CODE:
 {
   DEBUG_TRACE("readString()\n");
-  
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   char *tmps;
   
   int len;
-  READ_SV(trans, tmp, 4);
+  READ_SV(p, tmp, 4);
   tmps = SvPVX(tmp);
   I32_TO_INT(len, tmps, 0);
   if (len) {
-    READ_SV(trans, tmp, len);
+    READ_SV(p, tmp, len);
     sv_utf8_decode(tmp);
     if (SvROK(value))
       sv_setsv(SvRV(value), tmp);
@@ -621,15 +606,14 @@ CODE:
 }
 
 void
-readStringBody(SV *self, SV *value, int len)
+readStringBody(TBinaryProtocol *p, SV *value, int len)
 CODE:
 {
   // This method is never used but is here for compat
-  SV *trans = GET_TRANSPORT(self);
   SV *tmp;
   
   if (len) {
-    READ_SV(trans, tmp, len);
+    READ_SV(p, tmp, len);
     sv_utf8_decode(tmp);
     if (SvROK(value))
       sv_setsv(SvRV(value), tmp);
