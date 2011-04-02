@@ -119,10 +119,14 @@ CODE:
 OUTPUT:
   RETVAL
 
-void
+int
 writeStructEnd(SV *)
 CODE:
-{ }
+{
+  RETVAL = 0;
+}
+OUTPUT:
+  RETVAL
 
 int
 writeFieldBegin(TBinaryProtocol *p, SV * /*name*/, int type, int id)
