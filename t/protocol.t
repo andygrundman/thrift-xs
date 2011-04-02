@@ -7,7 +7,7 @@ use Thrift::XS;
 use Thrift::MemoryBuffer;
 use Thrift::BinaryProtocol;
 
-plan tests => 42;
+plan tests => 76;
 
 # Tests compare pure Perl output with XS output
 my $xst = Thrift::XS::MemoryBuffer->new;
@@ -24,14 +24,15 @@ my $ppp = Thrift::BinaryProtocol->new($ppt);
 
 my $test = sub {
     my $method = shift;
-    $xsp->$method(@_);
-    $ppp->$method(@_);
+    my $xs_count = $xsp->$method(@_);
+    my $pl_count = $ppp->$method(@_);
     
     # Hack to avoid wide char warnings
     if (utf8::is_utf8($_[0])) {
         utf8::encode($_[0]);
     }
     
+    is($xs_count, $pl_count, "$method byte counts ok");
     is_binary( $xst->read(999), $ppt->read(999), "$method ok (" . join(', ', @_) . ")" );
 };
 
@@ -63,116 +64,131 @@ my $test = sub {
 # Read tests
 {
     my ($name, $type, $seqid);
-    $xsp->writeMessageBegin('login русский', TMessageType::CALL, 12345);
-    $xsp->readMessageBegin(\$name, \$type, \$seqid);
+    my $written = $xsp->writeMessageBegin('login русский', TMessageType::CALL, 12345);
+    my $read = $xsp->readMessageBegin(\$name, \$type, \$seqid);
     is($name, 'login русский', "readMessageBegin name ok");
     is($type, TMessageType::CALL, "readMessageBegin type ok");
     is($seqid, 12345, "readMessageBegin seqid ok");
+    is($read, $written, "readMessageBegin read and written byte-count ok");
 }
 
 {
     my $name;
-    $xsp->writeStructBegin('foo');
-    $xsp->readStructBegin(\$name);
+    my $written = $xsp->writeStructBegin('foo');
+    my $read = $xsp->readStructBegin(\$name);
     is($name, '', "readStructBegin name ok");
+    is($read, $written, "readStructBegin read and written byte-count ok");
 }
 
 {
     my ($name, $type, $id);   
-    $xsp->writeFieldBegin('start', TType::STRING, 2600);
-    $xsp->readFieldBegin(\$name, \$type, \$id);
+    my $written = $xsp->writeFieldBegin('start', TType::STRING, 2600);
+    my $read = $xsp->readFieldBegin(\$name, \$type, \$id);
     # name is not returned
     is($type, TType::STRING, "readFieldBegin fieldtype ok");
     is($id, 2600, "readFieldBegin fieldid ok");
+    is($read, $written, "readFieldBegin read and written byte-count ok");
 }
 
 {
     my ($keytype, $valtype, $size);
-    $xsp->writeMapBegin(TType::STRING, TType::LIST, 42);
-    $xsp->readMapBegin(\$keytype, \$valtype, \$size);
+    my $written = $xsp->writeMapBegin(TType::STRING, TType::LIST, 42);
+    my $read = $xsp->readMapBegin(\$keytype, \$valtype, \$size);
     is($keytype, TType::STRING, "readMapBegin keytype ok");
     is($valtype, TType::LIST, "readMapBegin valtype ok");
     is($size, 42, "readMapBegin size ok");
+    is($read, $written, "readMapBegin read and written byte-count ok");
 }
 
 {
     my ($elemtype, $size);
-    $xsp->writeListBegin(TType::STRUCT, 12345);
-    $xsp->readListBegin(\$elemtype, \$size);
+    my $written = $xsp->writeListBegin(TType::STRUCT, 12345);
+    my $read = $xsp->readListBegin(\$elemtype, \$size);
     is($elemtype, TType::STRUCT, "readListBegin elemtype ok");
     is($size, 12345, "readListBegin size ok");
+    is($read, $written, "readListBegin read and written byte-count ok");
 }
 
 {
     my ($elemtype, $size);
-    $xsp->writeSetBegin(TType::I16, 12345);
-    $xsp->readSetBegin(\$elemtype, \$size);
+    my $written = $xsp->writeSetBegin(TType::I16, 12345);
+    my $read = $xsp->readSetBegin(\$elemtype, \$size);
     is($elemtype, TType::I16, "readSetBegin elemtype ok");
     is($size, 12345, "readSetBegin size ok");
+    is($read, $written, "readSetBegin read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeBool('true');
-    $xsp->readBool(\$value);
+    my $written = $xsp->writeBool('true');
+    my $read = $xsp->readBool(\$value);
     is($value, 1, "readBool true ok");
+    is($read, $written, "readBool true read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeBool(0);
-    $xsp->readBool(\$value);
+    my $written = $xsp->writeBool(0);
+    my $read = $xsp->readBool(\$value);
     is($value, 0, "readBool false ok");
+    is($read, $written, "readBool false read and written byte-count ok");
 }
 
 
 {
     my $value;
-    $xsp->writeByte(100);
-    $xsp->readByte(\$value);
+    my $written = $xsp->writeByte(100);
+    my $read = $xsp->readByte(\$value);
     is($value, 100, "readByte ok");
+    is($read, $written, "readByte read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeI16(65534);
-    $xsp->readI16(\$value);
+    my $written = $xsp->writeI16(65534);
+    my $read = $xsp->readI16(\$value);
     is($value, 65534, "readI16 ok");
+    is($read, $written, "readI16 read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeI32(1024 * 1024);
-    $xsp->readI32(\$value);
+    my $written = $xsp->writeI32(1024 * 1024);
+    my $read = $xsp->readI32(\$value);
     is($value, 1024 * 1024, "readI32 ok");
+    is($read, $written, "readI32 read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeI64((1 << 37) * -1234);
-    $xsp->readI64(\$value);
+    my $written = $xsp->writeI64((1 << 37) * -1234);
+    my $read = $xsp->readI64(\$value);
     is($value, (1 << 37) * -1234, "readI64 ok");
+    is($read, $written, "readI64 read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeDouble(-3.14159);
-    $xsp->readDouble(\$value);
+    my $written = $xsp->writeDouble(-3.14159);
+    my $read = $xsp->readDouble(\$value);
     is($value, -3.14159, "readDouble ok");
+    is($read, $written, "readDouble read and written byte-count ok");
 }
 
 {
     my $value;
-    $xsp->writeString('This is a unicode test with русский');
-    $xsp->readString(\$value);
+    my $written = $xsp->writeString('This is a unicode test with русский');
+    my $read = $xsp->readString(\$value);
     is($value, 'This is a unicode test with русский', "readString with unicode ok");
+    is($read, $written, "readString with unicode read and written byte-count ok");
 }
 
 {
     my $str = 'This is a unicode test with русский';
     my $value;
-    $xsp->writeString($str);
-    $xsp->readI32(\$value); # skip writeString len
-    $xsp->readStringBody(\$value, bytes::length($str));
+    my $written = $xsp->writeString($str);
+    my $read_len = $xsp->readI32(\$value); # skip writeString len
+    my $read_string = $xsp->readStringBody(\$value, bytes::length($str));
     is($value, $str, "readStringBody with unicode ok");
+    is($read_len + $read_string, $written, "readStringBody with unicode read and written byte-count ok");
 }

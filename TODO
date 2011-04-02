@@ -8,6 +8,8 @@ Provide higher-performance versions using XS::MemoryBuffer of:
   FramedTransport
   HttpClient
 
+Return int counts from CompactProtocol methods.
+
 #   Failed test 'writeI64 ok (256)'
 #   at t/compact.t line 22.
 # have (hex)               have           want (hex)               want        

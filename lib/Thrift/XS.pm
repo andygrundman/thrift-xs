@@ -94,6 +94,10 @@ and to run your own benchmarks, see the bench/bench.pl script.
         writeDouble + readDouble:             13.5x
         writeString + readString:              7.4x
 
+=head1 THANKS
+
+Wang Lam, E<lt>wlam@kosmix.comE<gt>, for patches and additional tests.
+
 =head1 SEE ALSO
 
 Thrift Home L<http://thrift.apache.org/>
