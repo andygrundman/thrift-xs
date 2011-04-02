@@ -123,7 +123,7 @@ cmpthese( -5, {
         }
         $xsp->readStructEnd();
     },
-    CP_StructBegin_xsc => sub {
+    CP_StructBegin_xs => sub {
         $xsc->resetState();
 
         $xsc->writeStructBegin('SliceRange');
