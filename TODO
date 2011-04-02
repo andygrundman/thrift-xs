@@ -10,6 +10,9 @@ Provide higher-performance versions using XS::MemoryBuffer of:
 
 Return int counts from CompactProtocol methods.
 
+Fix/hide "warning: null argument where non-null required (argument 1)"
+  because of calls to croak(NULL), a valid usage.
+
 #   Failed test 'writeI64 ok (256)'
 #   at t/compact.t line 22.
 # have (hex)               have           want (hex)               want        

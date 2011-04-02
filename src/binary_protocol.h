@@ -101,6 +101,7 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
 #define WRITE(p, str, len)                                     \
   if (likely(p->mbuf)) {                                       \
     buffer_append(p->mbuf->buffer, (void *)str, len);          \
+    buffer_dump(p->mbuf->buffer, 0); \
   }                                                            \
   else {                                                       \
     dSP; ENTER; SAVETMPS;                                      \
@@ -116,6 +117,7 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
 #define WRITE_SV(p, sv)                                              \
   if (likely(p->mbuf)) {                                             \
     buffer_append(p->mbuf->buffer, (void *)SvPVX(sv), sv_len(sv));   \
+    buffer_dump(p->mbuf->buffer, 0); \
   }                                                                  \
   else {                                                             \
     dSP; ENTER; SAVETMPS;                                            \
@@ -138,6 +140,7 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
         newSVpvf("Attempt to readAll(%lld) found only %d available", (uint64_t)len, avail));    \
     }                                                                               \
     dst = newSVpvn( buffer_ptr(p->mbuf->buffer), len );                             \
+    buffer_dump(p->mbuf->buffer, len); \
     buffer_consume(p->mbuf->buffer, len);                                           \
   }                                                                                 \
   else {                                                                            \
@@ -179,7 +182,8 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
       }                                                   \
       READ_SV(p, b, 1);                                   \
       bs = SvPVX(b);                                      \
-      dst |= (uint64_t)(bs[0] & 0x7f) << (7 * count);     \
+      DEBUG_TRACE("dst %llu\n", dst); \
+      dst |= (uint64_t)((bs[0] & 0x7f) << (7 * count));     \
       ++count;                                            \
     } while (bs[0] & 0x80);                               \
   }    
@@ -246,7 +250,7 @@ ll_to_zigzag(int64_t n)
 static inline int64_t
 zigzag_to_ll(uint64_t n)
 {
-  return (n >> 1) ^ -(n & 1);
+  return (int64_t)((n >> 1) ^ -(n & 1));
 }
 
 static void

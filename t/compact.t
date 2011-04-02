@@ -5,7 +5,7 @@ use Test::More;
 use Test::BinaryData;
 use Thrift::XS;
 
-plan tests => 58;
+plan tests => 59;
 
 my $xst = Thrift::XS::MemoryBuffer->new;
 my $xsp = Thrift::XS::CompactProtocol->new($xst);
@@ -69,8 +69,10 @@ my $test = sub {
     $test->('writeI32' => [ 1 << 30 ] => pack('H*', '8080808008'));
     $test->('writeI32' => [ -60124235 ] => pack('H*', '95b1ab39'));
     
-    $test->('writeI64' => [ 1 << 40 ] => pack('H*', '808080808040'));
-    $test->('writeI64' => [ -235412341332 ] => pack('H*', 'a789dafad90d'));
+    # writeI64 supports both strings and numbers. >32-bit values are strings so they work on 32-bit systems
+    $test->('writeI64' => [ 1234567 ] => pack('H*', '8eda9601'));
+    $test->('writeI64' => [ "1099511627776" ] => pack('H*', '808080808040'));
+    $test->('writeI64' => [ "-235412341332" ] => pack('H*', 'a789dafad90d'));
     
     $test->('writeDouble' => [ 3.14159 ] => pack('H*', '6e861bf0f9210940'));
     
@@ -164,9 +166,10 @@ my $test = sub {
 
 {
     my $value;
-    $xsp->writeI64((1 << 37) * -1234);
+    my $i64 = "-169599668584448";
+    $xsp->writeI64($i64);
     $xsp->readI64(\$value);
-    is($value, (1 << 37) * -1234, "readI64 ok");
+    is($value, $i64, "readI64 ok");
 }
 
 {

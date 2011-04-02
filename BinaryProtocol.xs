@@ -266,7 +266,7 @@ int
 writeByte(TBinaryProtocol *p, SV *value)
 CODE:
 {
-  DEBUG_TRACE("writeByte(%d)\n", SvIV(value) & 0xff);
+  DEBUG_TRACE("writeByte(%ld)\n", SvIV(value) & 0xff);
   char data[1];
   RETVAL = 0;
   

@@ -11,6 +11,7 @@
 # define DEBUG_TRACE(...) PerlIO_printf(PerlIO_stderr(), __VA_ARGS__)
 #else
 # define DEBUG_TRACE(...)
+# define buffer_dump(...)
 #endif
 
 #ifdef MEM_DEBUG

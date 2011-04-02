@@ -4,6 +4,8 @@
 
 #include "ppport.h"
 
+#include <stdlib.h>
+
 #include "xs_object_magic.h"
 #include "common.h"
 #include "buffer.c"
