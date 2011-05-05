@@ -21,7 +21,6 @@ WriteMakefile(
     PREREQ_PM         => {
         'Class::Accessor'   => 0,
         'Bit::Vector'       => 0,
-        'XS::Object::Magic' => 0,
         'Test::BinaryData'  => 0,
     },
     ABSTRACT_FROM     => 'lib/Thrift/XS.pm',

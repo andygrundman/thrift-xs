@@ -28,6 +28,7 @@ src/buffer.c
 src/buffer.h
 src/common.h
 src/memory_buffer.h
+src/Magic.c
 t/01use.t
 t/02pod.t
 t/03podcoverage.t

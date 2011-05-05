@@ -1,7 +1,6 @@
 package Thrift::XS;
 
 use strict;
-use XS::Object::Magic;
 
 use Thrift::XS::MemoryBuffer;
 use Thrift::XS::BinaryProtocol;
@@ -109,11 +108,11 @@ on CPAN, but will be available soon.
 
 =head1 AUTHOR
 
-Andy Grundman, E<lt>andy@slimdevices.comE<gt>
+Andy Grundman, E<lt>andy@hybridized.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2011 Logitech, Inc.
+Copyright 2011 Andy Grundman
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -215,14 +215,14 @@ void
 writeI64(TBinaryProtocol *p, SV *value)
 CODE:
 {  
-  uint8_t data[10];
+  char data[10];
   int varlen = 0;
   
   // Stringify the value, then convert to an int64_t
   const char *str = SvPOK(value) ? SvPVX(value) : SvPV_nolen(value);
   int64_t i64 = (int64_t)strtoll(str, NULL, 10);
   
-  DEBUG_TRACE("writeI64(%lld) (from string %s)\n", i64, str);
+  DEBUG_TRACE("writeI64(%lld)\n", i64);
   
   uint64_t uvalue = ll_to_zigzag(i64);
   UINT_TO_VARINT(varlen, data, uvalue, 0);  
@@ -577,12 +577,16 @@ CODE:
 {
   uint64_t varint;
   READ_VARINT(p, varint);
-  
+
   DEBUG_TRACE("readI64(%lld) (from varint %llu)\n", zigzag_to_ll(varint), varint);
-  
+
   // Store as a string so it works on 32-bit platforms
-  if (SvROK(value))
-    sv_setpvf(SvRV(value), "%lld", zigzag_to_ll(varint));
+  if (SvROK(value)) {
+    char string[25];
+    STRLEN length;
+    length = sprintf(string, "%lld", zigzag_to_ll(varint));
+    sv_setpvn(SvRV(value), string, length);
+  }
 }
 
 void

@@ -422,7 +422,7 @@ CODE:
     
     // read string
     {
-      int len;
+      uint32_t len;
       READ_SV(p, tmp, 4);
       tmps = SvPVX(tmp);
       I32_TO_INT(len, tmps, 0);
@@ -740,8 +740,12 @@ CODE:
   I32_TO_INT(hi, tmps, 0);
   I32_TO_INT(lo, tmps, 4);
   
-  if (SvROK(value))
-    sv_setpvf(SvRV(value), "%lld", (int64_t)(hi << 32) | lo);
+  if (SvROK(value)) {
+    char string[25];
+    STRLEN length;
+    length = sprintf(string, "%lld", (int64_t)(hi << 32) | lo);
+    sv_setpvn(SvRV(value), string, length);
+  }
 }
 OUTPUT:
   RETVAL
@@ -785,7 +789,7 @@ CODE:
   char *tmps;
   RETVAL = 0;
   
-  int len;
+  uint32_t len;
   READ_SV(p, tmp, 4);
   tmps = SvPVX(tmp);
   I32_TO_INT(len, tmps, 0);
@@ -806,7 +810,7 @@ OUTPUT:
   RETVAL
 
 int
-readStringBody(TBinaryProtocol *p, SV *value, int len)
+readStringBody(TBinaryProtocol *p, SV *value, uint32_t len)
 CODE:
 {
   // This method is never used but is here for compat

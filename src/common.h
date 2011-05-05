@@ -8,14 +8,14 @@
 //#define MEM_DEBUG
 
 #ifdef XS_DEBUG
-# define DEBUG_TRACE(...) PerlIO_printf(PerlIO_stderr(), __VA_ARGS__)
+# define DEBUG_TRACE(...) fprintf(stderr, __VA_ARGS__)
 #else
 # define DEBUG_TRACE(...)
 # define buffer_dump(...)
 #endif
 
 #ifdef MEM_DEBUG
-# define MEM_TRACE(...) PerlIO_printf(PerlIO_stderr(), __VA_ARGS__)
+# define MEM_TRACE(...) frintf(stderr, __VA_ARGS__)
 #else
 # define MEM_TRACE(...)
 #endif
