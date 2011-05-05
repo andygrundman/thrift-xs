@@ -318,10 +318,14 @@ int
 writeI64(TBinaryProtocol *p, SV *value)
 CODE:
 {
-  DEBUG_TRACE("writeI64(%lld)\n", (int64_t)SvNV(value));
   char data[8];
-  int64_t i64 = (int64_t)SvNV(value);
   RETVAL = 0;
+  
+  // Stringify the value, then convert to an int64_t
+  const char *str = SvPOK(value) ? SvPVX(value) : SvPV_nolen(value);
+  int64_t i64 = (int64_t)strtoll(str, NULL, 10);
+  
+  DEBUG_TRACE("writeI64(%lld) (from string %s)\n", i64, str);
   
   data[7] = i64 & 0xff;
   data[6] = (i64 >> 8) & 0xff;
@@ -731,13 +735,13 @@ CODE:
   tmps = SvPVX(tmp);
   RETVAL += 8;
   
-  uint64_t hi;
+  int64_t hi;
   uint32_t lo;
   I32_TO_INT(hi, tmps, 0);
   I32_TO_INT(lo, tmps, 4);
   
   if (SvROK(value))
-    sv_setiv(SvRV(value), (hi << 32) | lo);
+    sv_setpvf(SvRV(value), "%lld", (int64_t)(hi << 32) | lo);
 }
 OUTPUT:
   RETVAL

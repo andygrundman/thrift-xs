@@ -158,34 +158,40 @@ static const int32_t TYPE_SHIFT_AMOUNT = 5;
   sv_2mortal(dst)
 
 // These work for both 32-bit and 64-bit
-#define UINT_TO_VARINT(len, dst, src, off)     \
-  {                                            \
-    len = 0;                                   \
-    while (src > 0x7f) {                       \
-      dst[off + len++] = (src & 0x7f) | 0x80;  \
-      src >>= 7;                               \
-    }                                          \
-    dst[off + len++] = src & 0x7f;             \
+#define UINT_TO_VARINT(len, dst, src, off)       \
+  {                                              \
+    len = 0;                                     \
+    for (;;) {                                   \
+      if ((src & ~0x7f) == 0) {                  \
+        dst[off + len++] = src;                  \
+        break;                                   \
+      }                                          \
+      else {                                     \
+        dst[off + len++] = (src & 0x7f) | 0x80;  \
+        src >>= 7;                               \
+      }                                          \
+    }                                            \
   }
 
 // dst can be a uint32_t or uint64_t
 #define READ_VARINT(p, dst)                               \
   {                                                       \
     dst = 0;                                              \
-    int count = 0;                                        \
+    int shift = 0;                                        \
     SV *b;                                                \
     char *bs;                                             \
-    do {                                                  \
-      if (count == 10) {                                  \
+    for (;;) {                                            \
+      if (shift == 70) {                                  \
         dst = 0;                                          \
         break;                                            \
       }                                                   \
       READ_SV(p, b, 1);                                   \
       bs = SvPVX(b);                                      \
-      DEBUG_TRACE("dst %llu\n", dst); \
-      dst |= (uint64_t)((bs[0] & 0x7f) << (7 * count));     \
-      ++count;                                            \
-    } while (bs[0] & 0x80);                               \
+      DEBUG_TRACE("dst %llu\n", dst);                     \
+      dst |= (uint64_t)(bs[0] & 0x7f) << shift;           \
+      shift += 7;                                         \
+      if (!(bs[0] & 0x80)) break;                         \
+    }                                                     \
   }    
 
 static int get_compact_type(int type) {

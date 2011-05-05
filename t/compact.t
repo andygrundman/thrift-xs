@@ -5,7 +5,7 @@ use Test::More;
 use Test::BinaryData;
 use Thrift::XS;
 
-plan tests => 59;
+plan tests => 60;
 
 my $xst = Thrift::XS::MemoryBuffer->new;
 my $xsp = Thrift::XS::CompactProtocol->new($xst);
@@ -73,6 +73,7 @@ my $test = sub {
     $test->('writeI64' => [ 1234567 ] => pack('H*', '8eda9601'));
     $test->('writeI64' => [ "1099511627776" ] => pack('H*', '808080808040'));
     $test->('writeI64' => [ "-235412341332" ] => pack('H*', 'a789dafad90d'));
+    $test->('writeI64' => [ "-169599668584448" ] => pack('H*', 'ffffffffff8f4d'));
     
     $test->('writeDouble' => [ 3.14159 ] => pack('H*', '6e861bf0f9210940'));
     
