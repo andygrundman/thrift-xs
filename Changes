@@ -1,6 +1,7 @@
 Revision history for Perl extension Thrift::XS.
 
-1.02
+1.02    2011-05-06
+        - Fixed several bugs with 64-bit integers on 32-bit platforms.
         - Large performance boost by using direct buffer operations if
           also using XS::MemoryBuffer.
         - Added return values for compatibility for all methods in BinaryProtocol
