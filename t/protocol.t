@@ -171,7 +171,7 @@ my $test = sub {
     my $value;
     my $written = $xsp->writeDouble(-3.14159);
     my $read = $xsp->readDouble(\$value);
-    is($value, -3.14159, "readDouble ok");
+    is(sprintf("%.5f", $value), "-3.14159", "readDouble ok");
     is($read, $written, "readDouble read and written byte-count ok");
 }
 

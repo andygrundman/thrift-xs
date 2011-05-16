@@ -1,5 +1,10 @@
 Revision history for Perl extension Thrift::XS.
 
+1.03
+        - Fixed writeDouble bug on big-endian platforms.
+        - Worked around test failures due to floating-point precision on some
+          platforms.
+
 1.02    2011-05-06
         - Fixed several bugs with 64-bit integers on 32-bit platforms.
         - Large performance boost by using direct buffer operations if

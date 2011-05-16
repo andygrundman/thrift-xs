@@ -350,20 +350,22 @@ CODE:
   char data[8];
   union {
     double d;
-    int64_t i;
+    uint64_t i;
   } u;
+  uint64_t ni = 0; // 64-bit network order
   RETVAL = 0;
   
   u.d = (double)SvNV(value);
+  ni = htonll(u.i);
 
-  data[7] = u.i & 0xff;
-  data[6] = (u.i >> 8) & 0xff;
-  data[5] = (u.i >> 16) & 0xff;
-  data[4] = (u.i >> 24) & 0xff;
-  data[3] = (u.i >> 32) & 0xff;
-  data[2] = (u.i >> 40) & 0xff;
-  data[1] = (u.i >> 48) & 0xff;
-  data[0] = (u.i >> 56) & 0xff;
+  data[0] = ni & 0xff;
+  data[1] = (ni >> 8) & 0xff;
+  data[2] = (ni >> 16) & 0xff;
+  data[3] = (ni >> 24) & 0xff;
+  data[4] = (ni >> 32) & 0xff;
+  data[5] = (ni >> 40) & 0xff;
+  data[6] = (ni >> 48) & 0xff;
+  data[7] = (ni >> 56) & 0xff;
   
   WRITE(p, data, 8);
   RETVAL += 8;

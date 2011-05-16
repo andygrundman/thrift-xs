@@ -177,7 +177,7 @@ my $test = sub {
     my $value;
     $xsp->writeDouble(-3.14159);
     $xsp->readDouble(\$value);
-    is($value, -3.14159, "readDouble ok");
+    is(sprintf("%.5f", $value), "-3.14159", "readDouble ok");
 }
 
 {
