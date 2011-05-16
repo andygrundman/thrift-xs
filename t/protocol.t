@@ -32,8 +32,11 @@ my $test = sub {
         utf8::encode($_[0]);
     }
     
+    my $x = $xst->read(999);
+    my $p = $ppt->read(999);
+    
     is($xs_count, $pl_count, "$method byte counts ok");
-    is_binary( $xst->read(999), $ppt->read(999), "$method ok (" . join(', ', @_) . ")" );
+    is_binary( $x, $p, "$method ok (" . join(', ', @_) . ")" );
 };
 
 # Write tests

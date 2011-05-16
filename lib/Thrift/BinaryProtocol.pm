@@ -39,6 +39,7 @@ use base('Thrift::Protocol');
 
 use constant VERSION_MASK   => 0xffff0000;
 use constant VERSION_1      => 0x80010000;
+use constant IS_BIG_ENDIAN  => unpack("h*", pack("s", 1)) =~ /01/;
 
 sub new
 {
@@ -212,7 +213,12 @@ sub writeDouble
     my $value= shift;
 
     my $data = pack('d', $value);
-    $self->{trans}->write(scalar reverse($data), 8);
+    if (IS_BIG_ENDIAN) {
+      $self->{trans}->write($data, 8);
+    }
+    else {
+      $self->{trans}->write(scalar reverse($data), 8);
+    }
     return 8;
 }
 
@@ -435,7 +441,14 @@ sub readDouble
     my $self  = shift;
     my $value = shift;
 
-    my $data = scalar reverse($self->{trans}->readAll(8));
+    my $data;
+    if (IS_BIG_ENDIAN) {
+      $data = $self->{trans}->readAll(8);
+    }
+    else {
+      $data = scalar reverse($self->{trans}->readAll(8));
+    }
+    
     my @arr = unpack('d', $data);
 
     $$value = $arr[0];
