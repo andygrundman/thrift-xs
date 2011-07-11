@@ -23,7 +23,7 @@ WriteMakefile(
         'Test::BinaryData'  => 0,
     },
     ABSTRACT_FROM     => 'lib/Thrift/XS.pm',
-    AUTHOR            => 'Andy Grundman <andy@slimdevices.com>',
+    AUTHOR            => 'Andy Grundman <andy@hybridized.org>',
     INC               => join(' ', @INC),
     LIBS              => [ join(' ', @LIBPATH, @LIBS) ],
     DEFINE            => $DEFINES,

@@ -1,3 +1,5 @@
+Check out Math::Int64 for better ways to do 64-bit stuff
+
 Win32 support
 
 Improve varint performance, buffer_read/write_varint, etc

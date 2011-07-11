@@ -3,6 +3,8 @@ package Thrift::XS::CompactProtocol;
 use strict;
 use base('Thrift::XS::BinaryProtocol');
 
+use Thrift::XS;
+
 # Implementation is in CompactProtocol.xs
 
 1;

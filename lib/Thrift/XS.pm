@@ -6,7 +6,7 @@ use Thrift::XS::MemoryBuffer;
 use Thrift::XS::BinaryProtocol;
 use Thrift::XS::CompactProtocol;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 require XSLoader;
 XSLoader::load('Thrift::XS', $VERSION);
