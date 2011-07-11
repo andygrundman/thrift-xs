@@ -1,6 +1,6 @@
 Revision history for Perl extension Thrift::XS.
 
-1.04
+1.04    2011-07-11
         - Fixed bug in writeString that would encode certain binary data into
           UTF-8 bytes.
         - Fixed errors if you only loaded ::BinaryProtocol instead of ::XS.
