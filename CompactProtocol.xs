@@ -262,7 +262,9 @@ CODE:
   DEBUG_TRACE("writeString()\n");
   
   SV *valuecopy = sv_mortalcopy(value);
-  sv_utf8_encode(valuecopy);
+  if (SvUTF8(value) != 0) {
+    sv_utf8_encode(valuecopy);
+  }
   int len = sv_len(valuecopy);
   SV *data = sv_2mortal(newSV(5 + len));
   char tmp[5];

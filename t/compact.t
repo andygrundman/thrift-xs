@@ -1,11 +1,12 @@
 use strict;
 
 use utf8;
+use Bit::Vector;
 use Test::More;
 use Test::BinaryData;
 use Thrift::XS;
 
-plan tests => 60;
+plan tests => 61;
 
 my $xst = Thrift::XS::MemoryBuffer->new;
 my $xsp = Thrift::XS::CompactProtocol->new($xst);
@@ -80,6 +81,12 @@ my $test = sub {
     $test->('writeString' => [ 'This is a test' ] => pack('H*', '0e5468697320697320612074657374'));
     $utf8 = 'This is a unicode test with русский';
     $test->('writeString' => [ $utf8 ] => pack('H*', '2a54686973206973206120756e69636f64652074657374207769746820d180d183d181d181d0bad0b8d0b9'));
+    
+    # Test for writeString of binary data that looks like UTF-8 (reported by Aaron Turner)
+    print "# testing writeString of 640 as 64-bit int\n";
+    my $vec = Bit::Vector->new_Dec(64, 640);
+    my $long_int = pack('NN', $vec->Chunk_Read(32, 32), $vec->Chunk_Read(32, 0));
+    $test->('writeString' => [ $long_int ] => pack('H*', '080000000000000280'));
 }
 
 # Read tests

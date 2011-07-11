@@ -1,13 +1,14 @@
 use strict;
 
 use utf8;
+use Bit::Vector;
 use Test::More;
 use Test::BinaryData;
 use Thrift::XS;
 use Thrift::MemoryBuffer;
 use Thrift::BinaryProtocol;
 
-plan tests => 76;
+plan tests => 80;
 
 # Tests compare pure Perl output with XS output
 my $xst = Thrift::XS::MemoryBuffer->new;
@@ -62,6 +63,14 @@ my $test = sub {
     $test->('writeString' => 'This is a test');
     $utf8 = 'This is a unicode test with русский';
     $test->('writeString' => $utf8);
+    
+    # Tests for writeString of binary data that looks like UTF-8 (reported by Aaron Turner)
+    for my $value (639, 640) {
+        print "# testing writeString of $value as 64-bit int\n";
+        my $vec = Bit::Vector->new_Dec(64, "$value");
+        my $long_int = pack('NN', $vec->Chunk_Read(32, 32), $vec->Chunk_Read(32, 0));
+        $test->('writeString' => $long_int);
+    }
 }
 
 # Read tests
