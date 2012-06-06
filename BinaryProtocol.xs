@@ -792,7 +792,9 @@ CODE:
   RETVAL += 4;
   if (len) {
     READ_SV(p, tmp, len);
-    sv_utf8_decode(tmp);
+    if (SvUTF8(tmp) != 0) {		
+      sv_utf8_decode(tmp);
+    }
     RETVAL += len;
     if (SvROK(value))
       sv_setsv(SvRV(value), tmp);
