@@ -8,27 +8,14 @@ if ( $Config{myarchname} =~ /i386/ ) {
     # Match arch options with the running perl
     if ( my @archs = $Config{ccflags} =~ /-arch ([^ ]+)/g ) {
         $arch = join( '', map { "-arch $_ " } @archs );
-        
         if ( -e 'MANIFEST.SKIP' ) {
             # XXX for development, use only one arch to speed up compiles
             $arch = '-arch x86_64 ';
         }
     }
-    
-    # Read OS version
-    my $sys = `/usr/sbin/system_profiler SPSoftwareDataType`;
-    my ($osx_ver) = $sys =~ /Mac OS X.*(10\.[^ ]+)/;
-    if ( $osx_ver gt '10.5' ) {
-        # Running 10.6+, build as 10.5+
-        $arch .= "-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5";
-    }
-    else {
-        # 5.8.x, build for 10.3+
-        $arch .= "-isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.3";
-    }
-    
-    print "Adding $arch\n";
-    
+
+    print "Adding $arch\n" if $arch;
+
     my $ccflags   = $Config{ccflags};
     my $ldflags   = $Config{ldflags};
     my $lddlflags = $Config{lddlflags};
