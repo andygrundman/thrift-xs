@@ -1,5 +1,9 @@
 Revision history for Perl extension Thrift::XS.
 
+1.06    2026-01-28
+        - Release 1.05-TRIAL as 1.06 production release
+        - Increment version number and release
+
 1.05    2026-01-27
         - Fixed some XS syntax that no longer worked with ExtUtils::ParseXS. (Tim Legge)
         - Replaced non-portable 64-bit integer format specifiers with PRId64/PRIu64 macros. (Tim Legge)
