@@ -47,7 +47,7 @@
 #  if defined(_MSC_VER)
 #    include <stdlib.h>
 #    define bswap_64(n) _byteswap_uint64(n)
-#  elif defined(__GNUC__) || defined(__clang__)
+#  elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 #    define bswap_64(n) __builtin_bswap64(n)
 #  else
 #    define bswap_64(n) \
