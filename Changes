@@ -1,5 +1,8 @@
 Revision history for Perl extension Thrift::XS.
 
+1.07    2027-02-14
+        Fix some smoker failures due to the endianness checks (Tim Legge)
+
 1.06    2026-01-28
         - Release 1.05-TRIAL as 1.06 production release
         - Increment version number and release
