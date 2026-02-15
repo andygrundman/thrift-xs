@@ -17,26 +17,40 @@
 // Include the XS::Object::Magic code inline to simplify things
 #include "Magic.c"
 
-// Endian-ness code from TProtocol.h
-#ifndef __BYTE_ORDER
-# if defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && defined(BIG_ENDIAN)
-#  define __BYTE_ORDER BYTE_ORDER
-#  define __LITTLE_ENDIAN LITTLE_ENDIAN
-#  define __BIG_ENDIAN BIG_ENDIAN
-# else
-#  error "Cannot determine endianness"
-# endif
+/* Detect Endianness using Perl's configuration */
+#undef __LITTLE_ENDIAN
+#undef __BIG_ENDIAN
+#undef __BYTE_ORDER
+
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN    4321
+
+#ifdef BYTEORDER
+#  if (BYTEORDER == 0x1234 || BYTEORDER == 0x12345678)
+#    define __BYTE_ORDER __LITTLE_ENDIAN
+#  elif (BYTEORDER == 0x4321 || BYTEORDER == 0x87654321)
+#    define __BYTE_ORDER __BIG_ENDIAN
+#  endif
 #endif
 
-#if __BYTE_ORDER == __BIG_ENDIAN
-#  define ntohll(n) (n)
-#  define htonll(n) (n)
-# if defined(__GNUC__) && defined(__GLIBC__)
-#  include <byteswap.h>
-#  define htolell(n) bswap_64(n)
-#  define letohll(n) bswap_64(n)
-# else /* GNUC & GLIBC */
-#  define bswap_64(n) \
+/* Fallback for common platforms if BYTEORDER is missing */
+#ifndef __BYTE_ORDER
+#  if defined(_WIN32) || defined(__i386__) || defined(__x86_64__) || defined(__alpha__)
+#    define __BYTE_ORDER __LITTLE_ENDIAN
+#  else
+#    error "Cannot determine endianness. Please check your Perl configuration."
+#  endif
+#endif
+
+/* Define a high-performance 64-bit byte swapper */
+#ifndef bswap_64
+#  if defined(_MSC_VER)
+#    include <stdlib.h>
+#    define bswap_64(n) _byteswap_uint64(n)
+#  elif defined(__GNUC__) || defined(__clang__)
+#    define bswap_64(n) __builtin_bswap64(n)
+#  else
+#    define bswap_64(n) \
       ( (((n) & 0xff00000000000000ull) >> 56) \
       | (((n) & 0x00ff000000000000ull) >> 40) \
       | (((n) & 0x0000ff0000000000ull) >> 24) \
@@ -45,22 +59,20 @@
       | (((n) & 0x0000000000ff0000ull) << 24) \
       | (((n) & 0x000000000000ff00ull) << 40) \
       | (((n) & 0x00000000000000ffull) << 56) )
+#  endif
+#endif
+
+/* Define Host/Network macros */
+#if __BYTE_ORDER == __BIG_ENDIAN
+#  define ntohll(n)  (n)
+#  define htonll(n)  (n)
 #  define htolell(n) bswap_64(n)
 #  define letohll(n) bswap_64(n)
-# endif /* GNUC & GLIBC */
-#elif __BYTE_ORDER == __LITTLE_ENDIAN
+#else
+#  define ntohll(n)  bswap_64(n)
+#  define htonll(n)  bswap_64(n)
 #  define htolell(n) (n)
 #  define letohll(n) (n)
-# if defined(__GNUC__) && defined(__GLIBC__)
-#  include <byteswap.h>
-#  define ntohll(n) bswap_64(n)
-#  define htonll(n) bswap_64(n)
-# else /* GNUC & GLIBC */
-#  define ntohll(n) ( (((uint64_t)ntohl(n)) << 32) + ntohl(n >> 32) )
-#  define htonll(n) ( (((uint64_t)htonl(n)) << 32) + htonl(n >> 32) )
-# endif /* GNUC & GLIBC */
-#else /* __BYTE_ORDER */
-# error "Can't define htonll or ntohll!"
 #endif
 
 MODULE = Thrift::XS		PACKAGE = Thrift::XS		
