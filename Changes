@@ -1,5 +1,8 @@
 Revision history for Perl extension Thrift::XS.
 
+1.08    2027-02-16
+        Fix smoker failures on old gcc versions (Tim Legge)
+
 1.07    2027-02-14
         Fix some smoker failures due to the endianness checks (Tim Legge)
 
