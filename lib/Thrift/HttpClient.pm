@@ -17,19 +17,18 @@
 # under the License.
 #
 
-#require 5.6.0;
+use 5.10.0;
 use strict;
 use warnings;
 
+use HTTP::Request;
+use IO::String;
+use LWP::UserAgent;
 use Thrift;
+use Thrift::Exception;
 use Thrift::Transport;
 
-use HTTP::Request;
-use LWP::UserAgent;
-use IO::String;
-
-package # hide
-    Thrift::HttpClient;
+package Thrift::HttpClient;
 
 use base('Thrift::Transport');
 
@@ -123,7 +122,7 @@ sub readAll
     my $buf = $self->read($len);
 
     if (!defined($buf)) {
-      die new Thrift::TException('TSocket: Could not read '.$len.' bytes from input buffer');
+      die Thrift::TException->new('TSocket: Could not read '.$len.' bytes from input buffer');
     }
     return $buf;
 }
@@ -141,15 +140,15 @@ sub read
     my $in = $self->{in};
 
     if (!defined($in)) {
-      die new Thrift::TException("Response buffer is empty, no request.");
+      die Thrift::TException->new("Response buffer is empty, no request.");
     }
     eval {
       my $ret = sysread($in, $buf, $len);
       if (! defined($ret)) {
-        die new Thrift::TException("No more data available.");
+        die Thrift::TException->new("No more data available.");
       }
     }; if($@){
-      die new Thrift::TException($@);
+      die Thrift::TException->new($@);
     }
 
     return $buf;
@@ -172,7 +171,8 @@ sub flush
 {
     my $self = shift;
 
-    my $ua = LWP::UserAgent->new('timeout' => ($self->{sendTimeout} / 1000),
+    my $ua = LWP::UserAgent->new(
+        'timeout' => ($self->{sendTimeout} / 1000),
       'agent' => 'Perl/THttpClient'
      );
     $ua->default_header('Accept' => 'application/x-thrift');
@@ -183,7 +183,8 @@ sub flush
     $out->setpos(0); # rewind
     my $buf = join('', <$out>);
 
-    my $request = new HTTP::Request(POST => $self->{url}, undef, $buf);
+    my $request = HTTP::Request->new(POST => $self->{url}, undef, $buf);
+    map { $request->header($_ => $self->{headers}->{$_}) } keys %{$self->{headers}};
     my $response = $ua->request($request);
     my $content_ref = $response->content_ref;
 

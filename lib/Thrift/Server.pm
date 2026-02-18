@@ -17,26 +17,30 @@
 # under the License.
 #
 
-#require 5.6.0;
+use 5.10.0;
 use strict;
 use warnings;
 
 use Thrift;
-use Thrift::BufferedTransport;
 use Thrift::BinaryProtocol;
+use Thrift::BufferedTransport;
+use Thrift::Exception;
 
 #
 # Server base class module
 #
-package # hide
-    Thrift::Server;
+package Thrift::Server;
 
+#
 # 3 possible constructors:
 #   1.  (processor, serverTransport)
+#       Uses a BufferedTransportFactory and a BinaryProtocolFactory.
 #   2.  (processor, serverTransport, transportFactory, protocolFactory)
+#       Uses the same factory for input and output of each type.
 #   3.  (processor, serverTransport,
 #        inputTransportFactory, outputTransportFactory,
 #        inputProtocolFactory, outputProtocolFactory)
+#
 sub new
 {
     my $classname    = shift;
@@ -62,7 +66,7 @@ sub new
     }
     else
     {
-      die "Thrift::Server expects exactly 2, 4, or 6 args";
+      die Thrift::TException->new('Thrift::Server expects exactly 2, 4, or 6 args');
     }
 
     return bless($self,$classname);
@@ -89,7 +93,7 @@ sub _init
 
 sub serve
 {
-    die "abstract";
+    die 'abstract';
 }
 
 sub _clientBegin
@@ -118,39 +122,40 @@ sub _handleException
         $message =~ m/TTransportException/ and die $out;
         if ($message =~ m/TSocket/) {
             # suppress TSocket messages
-        } else {
+        }
+        else {
             warn $out;
         }
-    } else {
+    }
+    else {
         warn $e;
     }
 }
 
-
 #
 # SimpleServer from the Server base class that handles one connection at a time
 #
-package # hide
-    Thrift::SimpleServer;
+package Thrift::SimpleServer;
 use base qw( Thrift::Server );
 
 sub new
 {
     my $classname = shift;
-    my @args      = @_;
 
-    my $self      = $classname->SUPER::new(@args);
+    my $self      = $classname->SUPER::new(@_);
+
     return bless($self,$classname);
 }
 
 sub serve
 {
     my $self = shift;
+    my $stop = 0;
 
     $self->{serverTransport}->listen();
-    while (1)
-    {
+    while (!$stop) {
         my $client = $self->{serverTransport}->accept();
+        if (defined $client) {
         my $itrans = $self->{inputTransportFactory}->getTransport($client);
         my $otrans = $self->{outputTransportFactory}->getTransport($client);
         my $iprot  = $self->{inputProtocolFactory}->getProtocol($itrans);
@@ -161,12 +166,15 @@ sub serve
             {
                 $self->{processor}->process($iprot, $oprot);
             }
-        }; if($@) {
+            };
+            if($@) {
             $self->_handleException($@);
         }
-
         $itrans->close();
         $otrans->close();
+        } else {
+            $stop = 1;
+        }
     }
 }
 
@@ -174,11 +182,10 @@ sub serve
 #
 # ForkingServer that forks a new process for each request
 #
-package # hide
-    Thrift::ForkingServer;
+package Thrift::ForkingServer;
 use base qw( Thrift::Server );
 
-use POSIX ":sys_wait_h";
+use POSIX ':sys_wait_h';
 
 sub new
 {
@@ -193,6 +200,9 @@ sub new
 sub serve
 {
     my $self = shift;
+
+    # THRIFT-3848: without ignoring SIGCHLD, perl ForkingServer goes into a tight loop
+    $SIG{CHLD} = 'IGNORE';
 
     $self->{serverTransport}->listen();
     while (1)
@@ -221,10 +231,12 @@ sub _client
         if ($pid) #parent
         {
             $self->_parent($pid, $itrans, $otrans);
-        } else {
+        }
+        else {
             $self->_child($itrans, $otrans, $iprot, $oprot);
         }
-    }; if($@) {
+    };
+    if($@) {
         $self->_handleException($@);
     }
 }
@@ -255,11 +267,14 @@ sub _child
 
     my $ecode = 0;
     eval {
+        # THRIFT-4065 ensure child process has normal signal handling in case thrift handler uses it
+        $SIG{CHLD} = 'DEFAULT';
         while (1)
         {
             $self->{processor}->process($iprot, $oprot);
         }
-    }; if($@) {
+    };
+    if($@) {
         $ecode = 1;
         $self->_handleException($@);
     }
@@ -280,14 +295,16 @@ sub tryClose
         {
           $file->close();
         }
-    }; if($@) {
+    };
+    if($@) {
         if ($@ =~ m/TException/ and exists $@->{message}) {
             my $message = $@->{message};
             my $code    = $@->{code};
             my $out     = $code . ':' . $message;
 
             warn $out;
-        } else {
+        }
+        else {
             warn $@;
         }
     }

@@ -17,17 +17,17 @@
 # under the License.
 #
 
-#require 5.6.0;
+use 5.10.0;
 use strict;
 use warnings;
 
 use Thrift;
+use Thrift::Exception;
 
 #
 # Transport exceptions
 #
-package # hide
-    TTransportException;
+package Thrift::TTransportException;
 use base('Thrift::TException');
 
 use constant UNKNOWN      => 0;
@@ -43,8 +43,7 @@ sub new{
     return bless($self,$classname);
 }
 
-package # hide
-    Thrift::Transport;
+package Thrift::Transport;
 
 #
 # Whether this transport is open.
@@ -53,7 +52,7 @@ package # hide
 #
 sub isOpen
 {
-    die "abstract";
+    die 'abstract';
 }
 
 #
@@ -63,7 +62,7 @@ sub isOpen
 #
 sub open
 {
-    die "abstract";
+    die 'abstract';
 }
 
 #
@@ -71,7 +70,7 @@ sub open
 #
 sub close
 {
-    die "abstract";
+    die 'abstract';
 }
 
 #
@@ -83,8 +82,7 @@ sub close
 #
 sub read
 {
-    my ($len);
-    die("abstract");
+    die 'abstract';
 }
 
 #
@@ -116,8 +114,7 @@ sub readAll
 #
 sub write
 {
-    my ($buf);
-    die "abstract";
+    die 'abstract';
 }
 
 #
@@ -131,8 +128,7 @@ sub flush {}
 #
 # TransportFactory creates transport objects from transports
 #
-package # hide
-    Thrift::TransportFactory;
+package Thrift::TransportFactory;
 
 sub new {
     my $classname = shift;
@@ -158,22 +154,21 @@ sub getTransport
 #
 #  ServerTransport base class module
 #
-package # hide
-    Thrift::ServerTransport;
+package Thrift::ServerTransport;
 
 sub listen
 {
-    die "abstract";
+    die 'abstract';
 }
 
 sub accept
 {
-    die "abstract";
+    die 'abstract';
 }
 
 sub close
 {
-    die "abstract";
+    die 'abstract';
 }
 
 

@@ -17,20 +17,34 @@
 # under the License.
 #
 
-#require 5.6.0;
+use 5.10.0;
 use strict;
 use warnings;
 
 use Thrift;
+use Thrift::Exception;
 use Thrift::Transport;
 
 use IO::Socket::INET;
 use IO::Select;
 
-package # hide
-    Thrift::Socket;
+package Thrift::Socket;
 
 use base('Thrift::Transport');
+
+#
+# Construction and usage
+#
+# my $opts = {}
+# my $socket = Thrift::Socket->new(\%opts);
+#
+# options:
+#
+# host        => host to connect to
+# port        => port to connect to
+# sendTimeout => timeout used for send and for connect
+# recvTimeout => timeout used for recv
+#
 
 sub new
 {
@@ -117,12 +131,12 @@ sub open
                 $self->{debugHandler}->($error);
             }
 
-            die new Thrift::TException($error);
+            die Thrift::TException->new($error);
 
         };
 
 
-    $self->{handle} = new IO::Select( $sock );
+    $self->{handle} = IO::Select->new( $sock );
 }
 
 #
@@ -158,7 +172,7 @@ sub readAll
         my @sockets = $self->{handle}->can_read( $self->{recvTimeout} / 1000 );
 
         if(@sockets == 0){
-            die new Thrift::TException('TSocket: timed out reading '.$len.' bytes from '.
+            die Thrift::TException->new('TSocket: timed out reading '.$len.' bytes from '.
                                        $self->{host}.':'.$self->{port});
         }
 
@@ -169,15 +183,17 @@ sub readAll
 
         if (!defined $buf || $buf eq '') {
 
-            die new Thrift::TException('TSocket: Could not read '.$len.' bytes from '.
+            die Thrift::TException->new('TSocket: Could not read '.$len.' bytes from '.
                                $self->{host}.':'.$self->{port});
 
-        } elsif (($sz = length($buf)) < $len) {
+        }
+        elsif (($sz = length($buf)) < $len) {
 
             $pre .= $buf;
             $len -= $sz;
 
-        } else {
+        }
+        else {
             return $pre.$buf;
         }
     }
@@ -200,7 +216,7 @@ sub read
     my @sockets = $self->{handle}->can_read( $self->{recvTimeout} / 1000 );
 
     if(@sockets == 0){
-        die new Thrift::TException('TSocket: timed out reading '.$len.' bytes from '.
+        die Thrift::TException->new('TSocket: timed out reading '.$len.' bytes from '.
                                    $self->{host}.':'.$self->{port});
     }
 
@@ -211,7 +227,7 @@ sub read
 
     if (!defined $buf || $buf eq '') {
 
-        die new TException('TSocket: Could not read '.$len.' bytes from '.
+        die TException->new('TSocket: Could not read '.$len.' bytes from '.
                            $self->{host}.':'.$self->{port});
 
     }
@@ -230,17 +246,15 @@ sub write
     my $self = shift;
     my $buf  = shift;
 
-
     return unless defined $self->{handle};
 
     while (length($buf) > 0) {
-
 
         #check for timeout
         my @sockets = $self->{handle}->can_write( $self->{sendTimeout} / 1000 );
 
         if(@sockets == 0){
-            die new Thrift::TException('TSocket: timed out writing to bytes from '.
+            die Thrift::TException->new('TSocket: timed out writing to bytes from '.
                                        $self->{host}.':'.$self->{port});
         }
 
@@ -249,7 +263,7 @@ sub write
         my $got = $sock->send($buf);
 
         if (!defined $got || $got == 0 ) {
-            die new Thrift::TException('TSocket: Could not write '.length($buf).' bytes '.
+            die Thrift::TException->new('TSocket: Could not write '.length($buf).' bytes '.
                                  $self->{host}.':'.$self->{host});
         }
 
@@ -269,12 +283,14 @@ sub flush
     my $ret  = ($self->{handle}->handles())[0]->flush;
 }
 
+###
+### Overridable methods
+###
 
 #
 # Build a ServerSocket from the ServerTransport base class
 #
-package # hide
-    Thrift::ServerSocket;
+package Thrift::ServerSocket;
 
 use base qw( Thrift::Socket Thrift::ServerTransport );
 
@@ -307,7 +323,7 @@ sub listen
                 $self->{debugHandler}->($error);
             }
 
-            die new Thrift::TException($error);
+            die Thrift::TException->new($error);
         };
 
     $self->{handle} = $sock;
@@ -320,8 +336,8 @@ sub accept
     if ( exists $self->{handle} and defined $self->{handle} )
     {
         my $client        = $self->{handle}->accept();
-        my $result        = new Thrift::Socket;
-        $result->{handle} = new IO::Select($client);
+        my $result        = Thrift::Socket->new;
+        $result->{handle} = IO::Select->new($client);
         return $result;
     }
 

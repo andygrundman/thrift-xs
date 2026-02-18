@@ -17,29 +17,28 @@
 # under the License.
 #
 
-#require 5.6.0;
-
+use 5.10.0;
 use strict;
 use warnings;
 
-use utf8;
-use Encode;
-
-use Thrift;
-use Thrift::Protocol;
-
 use Bit::Vector;
+use Encode;
+use Thrift;
+use Thrift::Exception;
+use Thrift::MessageType;
+use Thrift::Protocol;
+use Thrift::Type;
+use utf8;
 
 #
 # Binary implementation of the Thrift protocol.
 #
-package # hide
-    Thrift::BinaryProtocol;
+package Thrift::BinaryProtocol;
 use base('Thrift::Protocol');
 
 use constant VERSION_MASK   => 0xffff0000;
 use constant VERSION_1      => 0x80010000;
-use constant IS_BIG_ENDIAN  => unpack("h*", pack("s", 1)) =~ /01/;
+use constant IS_BIG_ENDIAN  => unpack('h*', pack('s', 1)) =~ m/01/;
 
 sub new
 {
@@ -67,7 +66,8 @@ sub writeMessageEnd
     return 0;
 }
 
-sub writeStructBegin{
+sub writeStructBegin
+{
     my $self = shift;
     my $name = shift;
     return 0;
@@ -98,7 +98,7 @@ sub writeFieldEnd
 sub writeFieldStop
 {
     my $self = shift;
-    return $self->writeByte(TType::STOP);
+    return $self->writeByte(Thrift::TType::STOP);
 }
 
 sub writeMapBegin
@@ -253,14 +253,16 @@ sub readMessageBegin
     my $result = $self->readI32(\$version);
     if (($version & VERSION_MASK) > 0) {
       if (($version & VERSION_MASK) != VERSION_1) {
-        die new Thrift::TException('Missing version identifier')
+        die Thrift::TProtocolException->new('Missing version identifier',
+                                           Thrift::TProtocolException::BAD_VERSION);
       }
       $$type = $version & 0x000000ff;
       return
           $result +
           $self->readString($name) +
           $self->readI32($seqid);
-    } else { # old client support code
+    }
+    else { # old client support code
       return
         $result +
         $self->readStringBody($name, $version) + # version here holds the size of the string
@@ -298,7 +300,7 @@ sub readFieldBegin
 
     my $result = $self->readByte($fieldType);
 
-    if ($$fieldType == TType::STOP) {
+    if ($$fieldType == Thrift::TType::STOP) {
       $$fieldId = 0;
       return $result;
     }
@@ -426,7 +428,7 @@ sub readI64
 
     my ($hi,$lo)=unpack('NN',$data);
 
-    my $vec = new Bit::Vector(64);
+    my $vec = Bit::Vector->new(64);
 
     $vec->Chunk_Store(32,32,$hi);
     $vec->Chunk_Store(32,0,$lo);
@@ -448,7 +450,7 @@ sub readDouble
     else {
       $data = scalar reverse($self->{trans}->readAll(8));
     }
-    
+
     my @arr = unpack('d', $data);
 
     $$value = $arr[0];
@@ -466,7 +468,8 @@ sub readString
 
     if ($len) {
       $$value = $self->{trans}->readAll($len);
-    } else {
+    }
+    else {
       $$value = '';
     }
 
@@ -481,7 +484,8 @@ sub readStringBody
 
     if ($len) {
       $$value = $self->{trans}->readAll($len);
-    } else {
+    }
+    else {
       $$value = '';
     }
 
@@ -491,9 +495,8 @@ sub readStringBody
 #
 # Binary Protocol Factory
 #
-package # hide
-    Thrift::BinaryProtocolFactory;
-use base('TProtocolFactory');
+package Thrift::BinaryProtocolFactory;
+use base('Thrift::TProtocolFactory');
 
 sub new
 {
@@ -507,7 +510,7 @@ sub getProtocol{
     my $self  = shift;
     my $trans = shift;
 
-    return new Thrift::BinaryProtocol($trans);
+    return Thrift::BinaryProtocol->new($trans);
 }
 
 1;
