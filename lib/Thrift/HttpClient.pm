@@ -29,8 +29,8 @@ use Thrift::Exception;
 use Thrift::Transport;
 
 package Thrift::HttpClient;
-
 use base('Thrift::Transport');
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new
 {
@@ -122,7 +122,8 @@ sub readAll
     my $buf = $self->read($len);
 
     if (!defined($buf)) {
-      die Thrift::TException->new('TSocket: Could not read '.$len.' bytes from input buffer');
+      die Thrift::TTransportException->new("TSocket: Could not read $len bytes from input buffer",
+                                        Thrift::TTransportException::END_OF_FILE);
     }
     return $buf;
 }
@@ -140,15 +141,18 @@ sub read
     my $in = $self->{in};
 
     if (!defined($in)) {
-      die Thrift::TException->new("Response buffer is empty, no request.");
+      die Thrift::TTransportException->new('Response buffer is empty, no request.',
+                                        Thrift::TTransportException::END_OF_FILE);
     }
     eval {
         my $ret = sysread($in, $buf, $len);
         if (! defined($ret)) {
-        die Thrift::TException->new("No more data available.");
+        die Thrift::TTransportException->new('No more data available.',
+                                        Thrift::TTransportException::TIMED_OUT);
         }
-    }; if($@){
-      die Thrift::TException->new($@);
+    };
+    if($@){
+        die Thrift::TTransportException->new("$@", Thrift::TTransportException::UNKNOWN);
     }
 
     return $buf;
