@@ -266,63 +266,6 @@ sub flush
 ###
 
 #
-# Build a ServerSocket from the ServerTransport base class
-#
-package Thrift::ServerSocket;
-
-use base qw( Thrift::Socket Thrift::ServerTransport );
-
-use constant LISTEN_QUEUE_SIZE => 128;
-
-sub new
-{
-    my $classname   = shift;
-    my $port        = shift;
-
-    my $self        = $classname->SUPER::new(undef, $port, undef);
-    return bless($self,$classname);
-}
-
-sub listen
-{
-  my $self = shift;
-
-    # Listen to a new socket
-    my $sock = IO::Socket::INET->new(LocalAddr => undef, # any addr
-                                     LocalPort => $self->{port},
-                                     Proto     => 'tcp',
-                                     Listen    => LISTEN_QUEUE_SIZE,
-                                     ReuseAddr => 1)
-        || do {
-            my $error = 'TServerSocket: Could not bind to ' .
-                        $self->{host} . ':' . $self->{port} . ' (' . $! . ')';
-
-            if ($self->{debug}) {
-                $self->{debugHandler}->($error);
-}
-
-            die Thrift::TException->new($error);
-        };
-
-    $self->{handle} = $sock;
-}
-
-sub accept
-{
-    my $self = shift;
-
-    if ( exists $self->{handle} and defined $self->{handle} )
-{
-        my $client        = $self->{handle}->accept();
-        my $result        = Thrift::Socket->new;
-        $result->{handle} = IO::Select->new($client);
-        return $result;
-    }
-
-    return 0;
-}
-
-#
 # Open a connection to a server.
 #
 sub __open
