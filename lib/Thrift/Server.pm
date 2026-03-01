@@ -30,6 +30,7 @@ use Thrift::Exception;
 # Server base class module
 #
 package Thrift::Server;
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 #
 # 3 possible constructors:
@@ -114,7 +115,7 @@ sub _handleException
     my $self = shift;
     my $e    = shift;
 
-    if ($e =~ m/TException/ and exists $e->{message}) {
+    if ($e->isa('Thrift::TException') and exists $e->{message}) {
         my $message = $e->{message};
         my $code    = $e->{code};
         my $out     = $code . ':' . $message;
@@ -136,7 +137,8 @@ sub _handleException
 # SimpleServer from the Server base class that handles one connection at a time
 #
 package Thrift::SimpleServer;
-use base qw( Thrift::Server );
+use parent -norequire, 'Thrift::Server';
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new
 {
@@ -183,9 +185,9 @@ sub serve
 # ForkingServer that forks a new process for each request
 #
 package Thrift::ForkingServer;
-use base qw( Thrift::Server );
-
+use parent -norequire, 'Thrift::Server';
 use POSIX ':sys_wait_h';
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new
 {
@@ -228,7 +230,7 @@ sub _client
 
         my $pid = fork();
 
-        if ($pid) #parent
+        if ($pid)
         {
             $self->_parent($pid, $itrans, $otrans);
         }
@@ -297,7 +299,7 @@ sub tryClose
         }
     };
     if($@) {
-        if ($@ =~ m/TException/ and exists $@->{message}) {
+        if ($@->isa('Thrift::TException') and exists $@->{message}) {
             my $message = $@->{message};
             my $code    = $@->{code};
             my $out     = $code . ':' . $message;
