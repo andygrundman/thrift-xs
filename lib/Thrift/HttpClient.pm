@@ -36,7 +36,6 @@ sub new
 {
     my $classname = shift;
     my $url       = shift || 'http://localhost:9090';
-    my $debugHandler = shift;
 
     my $out = IO::String->new;
     binmode($out);
@@ -44,14 +43,26 @@ sub new
     my $self = {
         url          => $url,
         out          => $out,
-        debugHandler => $debugHandler,
-        debug        => 0,
-        sendTimeout  => 100,
-        recvTimeout  => 750,
+        timeout      => 100,
         handle       => undef,
+        headers      => {},
     };
 
     return bless($self,$classname);
+}
+
+sub setTimeout
+{
+    my $self    = shift;
+    my $timeout = shift;
+
+    $self->{timeout} = $timeout;
+}
+
+sub setRecvTimeout
+{
+    warn 'setRecvTimeout is deprecated - use setTimeout instead';
+    # note: recvTimeout was never used so we do not need to do anything here
 }
 
 sub setSendTimeout
@@ -59,17 +70,18 @@ sub setSendTimeout
     my $self    = shift;
     my $timeout = shift;
 
-    $self->{sendTimeout} = $timeout;
+    warn 'setSendTimeout is deprecated - use setTimeout instead';
+
+    $self->setTimeout($timeout);
 }
 
-sub setRecvTimeout
+sub setHeader
 {
-    my $self    = shift;
-    my $timeout = shift;
+    my $self = shift;
+    my ($name, $value) = @_;
 
-    $self->{recvTimeout} = $timeout;
+    $self->{headers}->{$name} = $value;
 }
-
 
 #
 #Sets debugging output on or off
@@ -176,7 +188,7 @@ sub flush
     my $self = shift;
 
     my $ua = LWP::UserAgent->new(
-        'timeout' => ($self->{sendTimeout} / 1000),
+        'timeout' => ($self->{timeout} / 1000),
         'agent'   => 'Perl/THttpClient'
      );
     $ua->default_header('Accept' => 'application/x-thrift');
