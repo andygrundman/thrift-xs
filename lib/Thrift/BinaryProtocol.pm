@@ -35,6 +35,7 @@ use utf8;
 #
 package Thrift::BinaryProtocol;
 use base('Thrift::Protocol');
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 use constant VERSION_MASK   => 0xffff0000;
 use constant VERSION_1      => 0x80010000;
@@ -497,6 +498,7 @@ sub readStringBody
 #
 package Thrift::BinaryProtocolFactory;
 use base('Thrift::TProtocolFactory');
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new
 {

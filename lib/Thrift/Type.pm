@@ -27,6 +27,7 @@ use Thrift;
 # Data types that can be sent via Thrift
 #
 package Thrift::TType;
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 use constant STOP   => 0;
 use constant VOID   => 1;

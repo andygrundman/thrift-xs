@@ -25,6 +25,7 @@ use Thrift;
 use Thrift::Type;
 
 package Thrift::TException;
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 use overload '""' => sub {
     return
@@ -43,6 +44,7 @@ sub new {
 
 package Thrift::TApplicationException;
 use parent -norequire, 'Thrift::TException';
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 use constant UNKNOWN                 => 0;
 use constant UNKNOWN_METHOD          => 1;

@@ -50,7 +50,7 @@ sub new
 
     if (scalar @args == 2)
     {
-      $self = _init($args[0], $args[1],
+        $self = _init($args[0], $args[1],
                     Thrift::BufferedTransportFactory->new(),
                     Thrift::BufferedTransportFactory->new(),
                     Thrift::BinaryProtocolFactory->new(),
@@ -156,22 +156,22 @@ sub serve
     while (!$stop) {
         my $client = $self->{serverTransport}->accept();
         if (defined $client) {
-        my $itrans = $self->{inputTransportFactory}->getTransport($client);
-        my $otrans = $self->{outputTransportFactory}->getTransport($client);
-        my $iprot  = $self->{inputProtocolFactory}->getProtocol($itrans);
-        my $oprot  = $self->{outputProtocolFactory}->getProtocol($otrans);
-        eval {
-            $self->_clientBegin($iprot, $oprot);
-            while (1)
-            {
-                $self->{processor}->process($iprot, $oprot);
-            }
+            my $itrans = $self->{inputTransportFactory}->getTransport($client);
+            my $otrans = $self->{outputTransportFactory}->getTransport($client);
+            my $iprot  = $self->{inputProtocolFactory}->getProtocol($itrans);
+            my $oprot  = $self->{outputProtocolFactory}->getProtocol($otrans);
+            eval {
+                $self->_clientBegin($iprot, $oprot);
+                while (1)
+                {
+                    $self->{processor}->process($iprot, $oprot);
+                }
             };
             if($@) {
-            $self->_handleException($@);
-        }
-        $itrans->close();
-        $otrans->close();
+                $self->_handleException($@);
+            }
+            $itrans->close();
+            $otrans->close();
         } else {
             $stop = 1;
         }

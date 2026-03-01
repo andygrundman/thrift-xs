@@ -48,7 +48,7 @@ use base('Thrift::Transport');
 
 sub new
 {
-    my $classname    = shift;
+    my $classname = shift;
     my $host         = shift || "localhost";
     my $port         = shift || 9090;
     my $debugHandler = shift;
@@ -133,7 +133,7 @@ sub open
 
             die Thrift::TException->new($error);
 
-        };
+    };
 
 
     $self->{handle} = IO::Select->new( $sock );
@@ -146,7 +146,7 @@ sub close
 {
     my $self = shift;
 
-    if( defined $self->{handle} ){
+    if( defined $self->{handle} ) {
         CORE::close( ($self->{handle}->handles())[0] );
     }
 }
@@ -249,7 +249,6 @@ sub write
     return unless defined $self->{handle};
 
     while (length($buf) > 0) {
-
         #check for timeout
         my @sockets = $self->{handle}->can_write( $self->{sendTimeout} / 1000 );
 
@@ -280,7 +279,7 @@ sub flush
 
     return unless defined $self->{handle};
 
-    my $ret  = ($self->{handle}->handles())[0]->flush;
+    my $ret = ($self->{handle}->handles())[0]->flush;
 }
 
 ###
@@ -307,7 +306,7 @@ sub new
 
 sub listen
 {
-    my $self = shift;
+  my $self = shift;
 
     # Listen to a new socket
     my $sock = IO::Socket::INET->new(LocalAddr => undef, # any addr
@@ -321,7 +320,7 @@ sub listen
 
             if ($self->{debug}) {
                 $self->{debugHandler}->($error);
-            }
+}
 
             die Thrift::TException->new($error);
         };
@@ -334,7 +333,7 @@ sub accept
     my $self = shift;
 
     if ( exists $self->{handle} and defined $self->{handle} )
-    {
+{
         my $client        = $self->{handle}->accept();
         my $result        = Thrift::Socket->new;
         $result->{handle} = IO::Select->new($client);

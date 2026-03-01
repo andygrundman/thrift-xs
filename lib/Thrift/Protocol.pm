@@ -30,12 +30,13 @@ use Thrift::Type;
 #
 package Thrift::TProtocolException;
 use base('Thrift::TException');
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
-use constant UNKNOWN       => 0;
-use constant INVALID_DATA  => 1;
-use constant NEGATIVE_SIZE => 2;
-use constant SIZE_LIMIT    => 3;
-use constant BAD_VERSION   => 4;
+use constant UNKNOWN         => 0;
+use constant INVALID_DATA    => 1;
+use constant NEGATIVE_SIZE   => 2;
+use constant SIZE_LIMIT      => 3;
+use constant BAD_VERSION     => 4;
 use constant NOT_IMPLEMENTED => 5;
 use constant DEPTH_LIMIT     => 6;
 
@@ -51,6 +52,7 @@ sub new {
 # Protocol base class module.
 #
 package Thrift::Protocol;
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new {
     my $classname = shift;
@@ -404,7 +406,7 @@ sub skip
     }
 
     die Thrift::TProtocolException->new("Type $type not recognized --- corrupt data?",
-                                      Thrift::TProtocolException::INVALID_DATA);
+                                       Thrift::TProtocolException::INVALID_DATA);
 
   }
 
@@ -422,7 +424,7 @@ sub skipBinary
 
     if($type == Thrift::TType::BOOL)
     {
-      return $itrans->readAll(1);
+        return $itrans->readAll(1);
     }
     elsif($type == Thrift::TType::BYTE)
     {
@@ -457,17 +459,17 @@ sub skipBinary
     {
         my $result = 0;
         while (1) {
-          my $ftype = 0;
-          my $fid = 0;
-          my $data = $itrans->readAll(1);
-          my @arr = unpack('c', $data);
-          $ftype = $arr[0];
-          if ($ftype == Thrift::TType::STOP) {
-            last;
-          }
-          # I16 field id
-          $result += $itrans->readAll(2);
-          $result += $self->skipBinary($itrans, $ftype);
+            my $ftype = 0;
+            my $fid = 0;
+            my $data = $itrans->readAll(1);
+            my @arr = unpack('c', $data);
+            $ftype = $arr[0];
+            if ($ftype == Thrift::TType::STOP) {
+                last;
+            }
+            # I16 field id
+            $result += $itrans->readAll(2);
+            $result += $self->skipBinary($itrans, $ftype);
         }
         return $result;
     }
@@ -516,14 +518,14 @@ sub skipBinary
     }
 
     die Thrift::TProtocolException->new("Type $type not recognized --- corrupt data?",
-                                      Thrift::TProtocolException::INVALID_DATA);
+                                       Thrift::TProtocolException::INVALID_DATA);
 }
 
 #
 # Protocol factory creates protocol objects from transports
 #
 package Thrift::TProtocolFactory;
-
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new {
     my $classname = shift;

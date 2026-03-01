@@ -27,6 +27,7 @@ use Thrift;
 # Message types for RPC
 #
 package Thrift::TMessageType;
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 use constant CALL      => 1;
 use constant REPLY     => 2;

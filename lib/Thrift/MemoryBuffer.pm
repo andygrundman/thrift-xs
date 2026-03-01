@@ -26,6 +26,7 @@ use Thrift::Transport;
 
 package Thrift::MemoryBuffer;
 use base('Thrift::Transport');
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
 
 sub new
 {
@@ -34,10 +35,10 @@ sub new
     my $bufferSize= shift || 1024;
 
     my $self = {
-        buffer    => '',
-        bufferSize=> $bufferSize,
-        wPos      => 0,
-        rPos      => 0,
+        buffer     => '',
+        bufferSize => $bufferSize,
+        wPos       => 0,
+        rPos       => 0,
     };
 
     return bless($self,$classname);

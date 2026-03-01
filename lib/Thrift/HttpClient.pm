@@ -78,7 +78,7 @@ sub setRecvTimeout
 #
 sub setDebug
 {
-    my $self  = shift;
+    my $self = shift;
     my $debug = shift;
 
     $self->{debug} = $debug;
@@ -103,8 +103,8 @@ sub close
 {
     my $self = shift;
     if (defined($self->{io})) {
-      close($self->{io});
-      $self->{io} = undef;
+        close($self->{io});
+        $self->{io} = undef;
     }
 }
 
@@ -143,10 +143,10 @@ sub read
       die Thrift::TException->new("Response buffer is empty, no request.");
     }
     eval {
-      my $ret = sysread($in, $buf, $len);
-      if (! defined($ret)) {
+        my $ret = sysread($in, $buf, $len);
+        if (! defined($ret)) {
         die Thrift::TException->new("No more data available.");
-      }
+        }
     }; if($@){
       die Thrift::TException->new($@);
     }
@@ -173,7 +173,7 @@ sub flush
 
     my $ua = LWP::UserAgent->new(
         'timeout' => ($self->{sendTimeout} / 1000),
-      'agent' => 'Perl/THttpClient'
+        'agent'   => 'Perl/THttpClient'
      );
     $ua->default_header('Accept' => 'application/x-thrift');
     $ua->default_header('Content-Type' => 'application/x-thrift');
