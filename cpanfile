@@ -7,15 +7,8 @@ requires "IO::Select" => "0";
 requires "IO::Socket::INET" => "0";
 requires "IO::String" => "0";
 requires "LWP::UserAgent" => "0";
-requires "POSIX" => "0";
 requires "Thrift" => "v0.22.0";
-requires "XSLoader" => "0";
-requires "base" => "0";
-requires "constant" => "0";
-requires "perl" => "5.008";
-requires "strict" => "0";
-requires "utf8" => "0";
-requires "warnings" => "0";
+requires "perl" => "5.010";
 
 on 'test' => sub {
   requires "File::Spec" => "0";
@@ -32,6 +25,8 @@ on 'configure' => sub {
 on 'develop' => sub {
   requires "Test::CPAN::Meta::JSON" => "0.16";
   requires "Test::Kwalitee" => "1.21";
+  requires "Test::More" => "0";
   requires "Test::Pod" => "1.41";
   requires "Test::Spelling" => "0.17";
+  requires "Test::Version" => "2.00";
 };
