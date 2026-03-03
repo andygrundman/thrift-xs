@@ -8,6 +8,7 @@ requires "IO::Socket::INET" => "0";
 requires "IO::String" => "0";
 requires "LWP::UserAgent" => "0";
 requires "POSIX" => "0";
+requires "Thrift" => "v0.22.0";
 requires "XSLoader" => "0";
 requires "base" => "0";
 requires "constant" => "0";
