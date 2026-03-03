@@ -17,6 +17,7 @@
 # under the License.
 #
 
+use 5.10.0;
 use strict;
 use warnings;
 
@@ -29,8 +30,7 @@ use Thrift::Transport;
 #
 # @package thrift.transport
 #
-package # hide
-    Thrift::FramedTransport;
+package Thrift::FramedTransport;
 
 use base('Thrift::Transport');
 
@@ -69,7 +69,9 @@ sub close
 {
     my $self = shift;
 
-    $self->{transport}->close();
+    if (defined $self->{transport}) {
+        $self->{transport}->close();
+    }
 }
 
 #
@@ -160,6 +162,33 @@ sub flush
     $self->{transport}->flush();
     $self->{wBuf} = '';
 
+}
+
+#
+# FramedTransport factory creates framed transport objects from transports
+#
+package Thrift::FramedTransportFactory;
+use version 0.77; our $VERSION = version->declare("$Thrift::VERSION");
+
+sub new {
+    my $classname = shift;
+    my $self      = {};
+
+    return bless($self, $classname);
+}
+
+#
+# Build a framed transport from the base transport
+#
+# @return Thrift::FramedTransport transport
+#
+sub getTransport
+{
+    my $self  = shift;
+    my $trans = shift;
+
+    my $buffered = Thrift::FramedTransport->new($trans);
+    return $buffered;
 }
 
 1;
