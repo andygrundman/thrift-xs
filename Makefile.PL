@@ -20,6 +20,7 @@ WriteMakefile(
     VERSION_FROM      => 'lib/Thrift/XS.pm',
     PREREQ_PM         => {
         'Bit::Vector'       => 0,
+        'Thrift'            => v0.22.0,
         'Test::BinaryData'  => 0,
     },
     ABSTRACT_FROM     => 'lib/Thrift/XS.pm',
