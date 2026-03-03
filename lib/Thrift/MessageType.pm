@@ -21,16 +21,16 @@ use 5.10.0;
 use strict;
 use warnings;
 
-#
-# Versioning
-#
-# Every perl module for Thrift will have the same version
-# declaration.  For a production build, change it below to
-# something like "v0.11.0" and all of the packages in all
-# of the files will pick it up from here.
-#
+use Thrift;
 
-package Thrift;
-use version 0.77; our $VERSION = version->declare("v0.22.0");
+#
+# Message types for RPC
+#
+package Thrift::TMessageType;
+
+use constant CALL      => 1;
+use constant REPLY     => 2;
+use constant EXCEPTION => 3;
+use constant ONEWAY    => 4;
 
 1;
