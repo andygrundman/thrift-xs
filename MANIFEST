@@ -4,8 +4,8 @@ bench/bench.pl
 BinaryProtocol.xs
 Changes
 CompactProtocol.xs
+cpanfile
 hints/darwin.pl
-lib/Thrift.pm
 lib/Thrift/XS.pm
 lib/Thrift/XS/BinaryProtocol.pm
 lib/Thrift/XS/CompactProtocol.pm
