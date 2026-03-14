@@ -1,5 +1,7 @@
 Revision history for Perl extension Thrift::XS.
 
+{{$NEXT}}
+
 1.09    2027-03-10
         - Remove the embedded (but unindexed) Thrift (Tim Legge) which
         fixes RT #173209	
