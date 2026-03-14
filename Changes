@@ -2,6 +2,14 @@ Revision history for Perl extension Thrift::XS.
 
 {{$NEXT}}
 
+1.10 -- Sat Mar 14 14:41:32 ADT 2026
+
+        - Move build/release to Dist::Zilla
+        - Add a Security Policy
+        - Release 1.09-TRIAL as a production release
+        - 1.09-TRIAL Removed the embedded (but unindexed) Thrift (Tim Legge)
+        - Thrift is now a dependency
+
 1.09    2027-03-10
         - Remove the embedded (but unindexed) Thrift (Tim Legge) which
         fixes RT #173209	
