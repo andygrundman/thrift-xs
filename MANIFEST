@@ -5,16 +5,20 @@ BinaryProtocol.xs
 Changes
 CompactProtocol.xs
 cpanfile
+dist.ini
 hints/darwin.pl
 lib/Thrift/XS.pm
 lib/Thrift/XS/BinaryProtocol.pm
 lib/Thrift/XS/CompactProtocol.pm
 lib/Thrift/XS/MemoryBuffer.pm
+LICENSE
+maint/Makefile_header.PL
 Makefile.PL
 MANIFEST			This list of files
 MemoryBuffer.xs
 ppport.h
-README
+README.md
+SECURITY.md
 src/binary_protocol.h
 src/buffer.c
 src/buffer.h
