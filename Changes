@@ -2,6 +2,10 @@ Revision history for Perl extension Thrift::XS.
 
 {{$NEXT}}
 
+1.11 -- Sat Mar 28 10:28:39 ADT 2026
+
+        - Fix Changes year for versions 1.07 through 1.09 (esabol)
+
 1.10 -- Sat Mar 14 14:41:32 ADT 2026
 
         - Move build/release to Dist::Zilla
