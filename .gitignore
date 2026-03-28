@@ -8,4 +8,4 @@ META.yml
 blib
 pm_to_blib
 Thrift-XS*
-
+Release-*
