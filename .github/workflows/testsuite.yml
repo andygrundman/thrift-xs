@@ -225,7 +225,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: uses install-with-cpanm
-        uses: perl-actions/install-with-cpanm@v1
+        uses: perl-actions/install-with-cpanm@v2
         with:
           cpanfile: "cpanfile"
           sudo: false
