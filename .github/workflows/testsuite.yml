@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: openssl version
       - run: perl -V
       - name: uses install-with-cpm
@@ -60,7 +60,7 @@ jobs:
 
     container: ${{ matrix.os-version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install dependencies using apt-get
         if: ${{ matrix.os-version == 'debian:bullseye' || matrix.os-version == 'debian:bookworm' }}
         run: |
@@ -121,7 +121,7 @@ jobs:
     container: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: openssl version
 
       - name: Restore CPAN cache
@@ -167,7 +167,7 @@ jobs:
         perl-version: [latest]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Perl
         run: |
@@ -223,7 +223,7 @@ jobs:
         perl-version: [latest]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: uses install-with-cpanm
         uses: perl-actions/install-with-cpanm@v1
         with:
